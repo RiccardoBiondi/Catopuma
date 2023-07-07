@@ -3,6 +3,11 @@ from abc import ABC, abstractmethod
 from typing import Any, Tuple
 
 
+
+class UploaderBase(ABC):
+    pass
+
+
 class PreProcessingBase(ABC):
     
     @abstractmethod

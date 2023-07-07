@@ -21,11 +21,11 @@ __all__ = ['_get_required_axis']
 
 # Some consant definition
 
-ALLOWED_DATA_FORMATS : Tuple[str] = ('channel_first', 'channel_last')
+ALLOWED_DATA_FORMATS : Tuple[str] = ('channels_first', 'channels_last')
 
 BASE_DATA_FORMAT_REDUCTION_AXIS: Dict[str, List[int]] =   {
-                                                                'channel_first': [1, 2],
-                                                                'channel_last': [2, 3]
+                                                                'channels_first': [1, 2],
+                                                                'channels_last': [2, 3]
                                                                 }
 
 
@@ -123,12 +123,17 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
     '''
 
     # TODO improve code efficiency
-    if data_format == 'channel_last':
+
+    # Retrieve all the indexes
+    if indexes is None:
+        return indexes
+
+    if data_format == 'channels_last':
         x = K.permute_dimensions(x, (3, 0, 1, 2))
         x = K.gather(x, indexes)
         x = K.permute_dimensions(x, (1, 2, 3, 0))
 
-    elif data_format == 'channel_first':
+    elif data_format == 'channels_first':
         x = K.permute_dimensions(x, (1, 0, 2, 3))
         x = K.gather(x, indexes)
         x = K.permute_dimensions(x, (1, 0, 2, 3))
@@ -149,7 +154,7 @@ def get_reduce_axes(per_image: bool = False, **kwargs) -> List[int]:
     return axes
 
 
-def gather_channels(*xs, indexes=None, data_format='channel_last'):
+def gather_channels(*xs, indexes: Tuple[int] = None, data_format: str = 'channels_last') -> np.ndarray:
     '''
     '''
     if indexes is None:
@@ -160,7 +165,7 @@ def gather_channels(*xs, indexes=None, data_format='channel_last'):
     return [_gather_channels(x, indexes=indexes, data_format=data_format) for x in xs]
 
 
-def average(x, per_image=False, class_weights=None, **kwargs):
+def average(x: np.ndarray, per_image: bool = False, class_weights: Optional[np.array] = None, **kwargs) -> float:
     '''
     Average the array 
     '''

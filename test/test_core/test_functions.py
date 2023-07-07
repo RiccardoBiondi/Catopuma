@@ -118,7 +118,7 @@ def test__gather_channel_raise_value_error(data_format: str) :
         x = _gather_channels(x=dummy_tensor, indexes=dummy_index, data_format=data_format)
 
 
-@given(st.integers(min_value=5, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
+@given(st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
 @settings(max_examples=10, deadline=None)
 def test__gater_channel_channel_first(number_of_channels, indexes):
     '''
@@ -142,13 +142,13 @@ def test__gater_channel_channel_first(number_of_channels, indexes):
     indexes = tuple(set(indexes))
 
     
-    gater = _gather_channels(x=x, indexes=indexes, data_format='channel_first')
+    gater = _gather_channels(x=x, indexes=indexes, data_format='channels_first')
     
     assert gater.shape == (1, len(indexes), 64, 64)
     assert np.all(np.unique(gater) == sorted(indexes))
 
 
-@given(st.integers(min_value=5, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
+@given(st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
 @settings(max_examples=10, deadline=None)
 def test__gater_channel_channel_last(number_of_channels, indexes):
     '''
@@ -174,7 +174,7 @@ def test__gater_channel_channel_last(number_of_channels, indexes):
 
 
     
-    gater = _gather_channels(x=x, indexes=indexes, data_format='channel_last')
+    gater = _gather_channels(x=x, indexes=indexes, data_format='channels_last')
     
     assert gater.shape == (1, 64, 64, len(indexes))
     assert np.all(np.unique(gater) == sorted(indexes))
