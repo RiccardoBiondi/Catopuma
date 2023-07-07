@@ -34,8 +34,8 @@ class BaseLoss(ABC):
 
         self._name = name
 
-    @abstractmethods
-    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.float32:
+    @abstractmethod
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         raise NotImplementedError("losses must implement a __call__ method")
     
     @property
@@ -48,30 +48,10 @@ class BaseLoss(ABC):
     def name(self) -> str:
         return self.__name__
     
-    @property.setter
+    @__name__.setter
     def __name__(self, t_name: str) -> None:
         self.__name__ = t_name
 
-    @property.setter
+    @name.setter
     def name(self, t_name: str) -> None:
         self.__name__ = t_name
-
-
-
-    def __add__(self, other):
-
-        if isinstance(other):
-            return LossSum(self, other)
-        else:
-            raise ValueError("Expected Base Loss Object")
-
-    def __radd__(self, other):
-        return self.__add__
-
-
-    def __mul__(self, other):
-
-        if isinstance(other, (int, float)):
-            return Multiply(self, other)
-        else:
-            raise ValueError("Expected int or float")
