@@ -16,8 +16,10 @@
 
 # Custom Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment
 
-  - [Overview](#overview)
+This repository contains the implementation of many tools developed for tenorflow.keras during my PhD journey into deep-learning for medical image segmentation.
+Therefore, 
 
+  - [Overview](#overview)
 
 
 ## Overview
