@@ -1,6 +1,7 @@
 numpy
-tensorflow
 keras
+tensorflow
+SimpleITK
 
 pytest
 hypothesis
