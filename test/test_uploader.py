@@ -110,8 +110,6 @@ def test_simple_itk_uploader_channels_last_correct_output_shape():
 
 
 
-
-
 def test_simple_itk_uploader_channels_first_correct_output_shape():
     '''
     Check that the red images have the correct shape, coherent with the channels_first 
