@@ -174,3 +174,5 @@ def average(x: np.ndarray, per_image: bool = False, class_weights: Optional[np.a
     if class_weights is not None:
         x = x * class_weights
     return K.mean(x)
+
+
