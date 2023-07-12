@@ -1,3 +1,8 @@
+'''
+This modules implements some pre-processing classes to be passed to the feeder for the on-the-fly 
+preprocessing of the input images
+'''
+
 import numpy as np
 import tensorflow as tf
 
@@ -12,6 +17,8 @@ from catopuma.core._preprocessing_functions import identity
 
 __author__ = ['Riccardo  Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
+
+__all__ = ['PreProcessing']
 
 
 SCALER_LUT: Dict[str, Callable] = {
@@ -53,8 +60,15 @@ class PreProcessing(PreProcessingBase):
     '''
 
     def __init__(self,  standardizer: Union[str, Callable] = 'identity', per_image: bool = False, per_channel: bool = False, data_fromat: str = 'channels_last', target_label: int = 1):
+        
+        if isinstance(standardizer, str) & (standardizer not in [k for k, _ in SCALER_LUT.items()]):
+            raise ValueError(f'Unknown standardized method: {standardizer}')
+        
+        if data_fromat not in ('channels_last', 'channels_first'):
+            raise ValueError(f'Unknown data format {data_fromat}. It must be one of "channels_last" or "channels_first"')
 
-        if standardizer in [k for k, _ in SCALER_LUT.items()]:
+
+        if isinstance(standardizer, str):
             self.standardizer = SCALER_LUT[standardizer]
         else: 
             self.standardizer = standardizer
