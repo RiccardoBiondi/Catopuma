@@ -14,14 +14,48 @@
 
 
 
-# Custom Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment
+# Customizable Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment
 
 This repository contains the implementation of many tools developed for tenorflow.keras during my PhD journey into deep-learning for medical image segmentation.
 Therefore, 
 
+- [Customizable Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment](#customizable-advanced-tensorflow-objects-for-preoproces-upload-model-and-augment)
   - [Overview](#overview)
+  - [Installation](#installation)
+    - [Install with pip](#install-with-pip)
+    - [Install with conda](#install-with-conda)
+    - [Install from source](#install-from-source)
+    - [Testing](#testing)
+  - [Getting Started](#getting-started)
+  - [License](#license)
+  - [Contribute](#contribute)
+    - [How to Commit](#how-to-commit)
+  - [Authors](#authors)
+  - [Citation](#citation)
 
 
 ## Overview
 
-This repo contains the implementation of many tensorfow keras objects. 
+This repo contains the implementation of many tensorfow keras objects.
+
+## Installation
+
+### Install with pip
+
+### Install with conda
+
+### Install from source
+
+### Testing
+
+## Getting Started
+
+## License
+
+## Contribute
+
+### How to Commit
+
+## Authors
+
+## Citation
