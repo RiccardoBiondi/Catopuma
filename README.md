@@ -25,6 +25,7 @@ Therefore,
   - [Contribute](#contribute)
     - [How to Commit](#how-to-commit)
   - [Authors](#authors)
+  - [References](#references)
   - [Citation](#citation)
 
 
@@ -46,10 +47,33 @@ This repo contains the implementation of many tensorfow keras objects.
 
 ## License
 
+The `CATOPUMA` package is licensed under the MIT "Expat" License.
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](<https://github.com/RiccardoBiondi/Catopuma/blob/master/LICENSE.md>)
+
+
 ## Contribute
 
 ### How to Commit
 
 ## Authors
 
+- <img src="https://avatars3.githubusercontent.com/u/48323959?s=400&v=4" width="25px"> **Riccardo Biondi** [github](https://github.com/RiccardoBiondi),  [unibo](https://www.unibo.it/sitoweb/riccardo.biondi7)
+
+## References
+
+<blockquote> Iakubovskii, P. Segmentation Models. GitHub repository (2019). https://github.com/qubvel/segmentation_models </blockquote>
+
 ## Citation
+
+If you have found `CATOPUMA` helpful in your project
+
+```BibTeX
+@misc{catopuma,
+  author = {Biondi, Riccardo},
+  title = {CATOPUMA - Customizable Advanced Tensorflow Objects to Preprocess, Upload, Model and Augment},
+  year = {2023},
+  publisher = {GitHub},
+  howpublished = {\url{https://github.com/RiccardoBiondi/Catopuma}},
+}
+
+```
