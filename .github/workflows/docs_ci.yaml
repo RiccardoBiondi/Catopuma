@@ -1,0 +1,48 @@
+name: Docs CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main]
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - uses: actions/checkout@v2
+
+    - name: 'Update apt'
+      run: sudo apt update
+    - name: Install dependencies
+      run: |
+        git submodule update --init --recursive
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install Catopuma
+      run: |
+        python setup.py install
+      
+    - name: Install Pandoc
+      run: |
+        sudo apt install pandoc
+  
+    - name: Install docs dependencies
+      run: |
+        python -m pip install -r docs/requirements.txt
+    - name: Build Python API
+      run: |
+        cd docs
+        make html
+        cd ..
