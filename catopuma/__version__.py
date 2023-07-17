@@ -4,6 +4,6 @@
 __author__  = ['Riccardo Biondi']
 __email__   = ['riccardo.biondi7@unibo.it']
 
-VERSION = (0, 0, 1)
+VERSION = (1, 0, 0, 'dev')
 
 __version__ = '.'.join(map(str, VERSION))

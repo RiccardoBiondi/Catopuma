@@ -7,11 +7,10 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/RiccardoBiondi/Catopuma.svg?label=Stars&style=social)](https://github.com/RiccardoBiondi/Catopuma/stargazers)
 [![GitHub watchers](https://img.shields.io/github/watchers/RiccardoBiondi/Catopuma.svg?label=Watch&style=social)](https://github.com/RiccardoBiondi/Catopuma/watchers)
+[![GitHub forks](https://img.shields.io/github/watchers/RiccardoBiondi/Catopuma.svg?label=Forks&style=social)](https://github.com/RiccardoBiondi/Catopuma/forks)
 
 # Customizable Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment
-
-This repository contains the implementation of many tools developed for tenorflow.keras during my PhD journey into deep-learning for medical image segmentation.
-Therefore, 
+ 
 
 - [Customizable Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment](#customizable-advanced-tensorflow-objects-for-preoproces-upload-model-and-augment)
   - [Overview](#overview)
@@ -31,17 +30,67 @@ Therefore,
 
 ## Overview
 
-This repo contains the implementation of many tensorfow keras objects.
+CATOPUMA is a Python package that offers customizable advanced TensorFlow objects for tasks such as preprocessing, uploading, modeling, and augmenting. It includes several classes that facilitate the loading, augmentation, and preprocessing of images for deep learning models.
+
+The main functionalities of CATOPUMA are as follows:
+
+  - Feeder: This module contains claasses to helps load images batch-wise from local directories and eventuallly perform data augmentation and image preprocessing on the fly.
+
+  - Losses: The losses module provide a series of custom losses. The overload if the arimetic operators allows to easy combine different losses.
+
+  - Preprocessing: CATOPUMA provides the implementation of some classes to easily perform the basic preprocessing steps on images and labels
+
+  - Core: the core functionality of catopèuma are the bastract classess providing a base for each of the basic functionality (like preprocessin, loss, data augmentation, etc.), allowing an easy customization of the various objects,,
+
+Overall, CATOPUMA simplifies the process of preparing image datasets for deep learning models by providing convenient classes and functions for loading, augmenting, and preprocessing images
 
 ## Installation
 
+CATOPUMA offers different installation way.
+The installation process is the same for each Operative System
+
 ### Install with pip
+
+pip installer is not yet available
 
 ### Install with conda
 
+conda installer is no yet availabel
+
 ### Install from source
 
+  Download the project or the latest release:
+
+  ```console
+  git clone https://github.com/RiccardoBiondi/Catopuma
+  ```
+
+  Now  install the required packages:
+
+  ```console
+  python -m pip install -r requirements.txt
+  ```
+
+  And you are ready to build the package:
+
+  ```console
+  python setup.py develop --user
+  ```
+
 ### Testing
+
+We have provide a test routine in [test](./test) directory. This routine use:
+
+- pytest >= 3.0.7
+
+- hypothesis >= 4.13.0
+
+Please install these packages to perform the test.
+You can run the full set of test with:
+
+```console
+  python -m pytest
+```
 
 ## Getting Started
 
@@ -52,6 +101,8 @@ The `CATOPUMA` package is licensed under the MIT "Expat" License.
 
 
 ## Contribute
+
+Any contribution is more than welcome. Just fill an [issue]() or a [pull request]() and we will check ASAP!
 
 ### How to Commit
 
