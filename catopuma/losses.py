@@ -2,7 +2,7 @@ import numpy as np
 
 from typing import Union, Optional, List
 
-from catopuma.core.abstraction import BaseLoss
+from catopuma.core.base_losses import BaseLoss
 from catopuma.core._loss_functions import f_score
 
 __author__ = ['Riccardo Biondi']

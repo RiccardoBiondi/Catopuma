@@ -1,5 +1,5 @@
 from catopuma.preprocessing import *
-from catopuma.feeder import *
+from catopuma.tensorflow.feeder import *
 from catopuma.losses import *
 from catopuma.uploader import *
 from catopuma.__version__ import __version__

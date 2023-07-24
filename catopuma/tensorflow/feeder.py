@@ -7,7 +7,7 @@ import tensorflow as tf
 from typing import List, Tuple, Optional, NoReturn
 
 from catopuma.uploader import SimpleITKUploader
-from catopuma.core.abstraction import UploaderBase, PreProcessingBase, DataAgumentationBase
+from catopuma.core.base import UploaderBase, PreProcessingBase, DataAgumentationBase
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']

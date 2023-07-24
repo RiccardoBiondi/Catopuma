@@ -9,7 +9,7 @@ import numpy as np
 import SimpleITK as sitk
 import tensorflow as tf
 
-from catopuma.core.abstraction import UploaderBase
+from catopuma.core.base import UploaderBase
 
 
 __author__ = ['Riccardo Biondi']

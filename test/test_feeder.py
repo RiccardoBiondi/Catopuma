@@ -5,7 +5,7 @@ from hypothesis import given, assume, settings
 import numpy as np
 
 from catopuma.uploader import SimpleITKUploader
-from catopuma.feeder import ImageFeederOnTheFly
+from catopuma.tensorflow.feeder import ImageFeederOnTheFly
 
 
 def test_image_feeder_on_the_fly_default_init():

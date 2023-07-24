@@ -7,7 +7,7 @@ from hypothesis import given, settings, assume
 import numpy as np
 from typing import Optional
 
-from catopuma.core.abstraction import BaseLoss
+from catopuma.core.base_losses import BaseLoss
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
