@@ -12,11 +12,12 @@ from catopuma.core.functions import get_reduce_axes
 from catopuma.core.functions import gather_channels
 from catopuma.core.functions import average
 
-legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'),
-                                 min_codepoint=65, max_codepoint=90)
 
-text_strategy = st.text(alphabet=legitimate_chars, min_size=1,
-                        max_size=15)
+__author__ = ['Riccardo Biondi']
+legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'), min_codepoint=65, max_codepoint=90)
+
+text_strategy = st.text(alphabet=legitimate_chars, min_size=1, max_size=15)
+
 
 def test_get_required_axis_default():
     '''
@@ -226,15 +227,13 @@ def test_get_reduce_axis_channel_first():
     Given:
         - No argument is required
     Then:
-        - set the image d data format to 'channel_first'
         - call get_reduce_axes with per_image=False and image data format required to be 
             'channel_first'
     Assert:
         - resulting reduce axes is [0, 2, 3]
     '''
-    K.set_image_data_format('channels_first')
 
-    reduce_axes = get_reduce_axes(per_image=False)
+    reduce_axes = get_reduce_axes(per_image=False, data_format='channels_first')
 
     assert np.all([0, 2, 3] == reduce_axes)
 
@@ -247,14 +246,12 @@ def test_get_reduce_axis_channel_first_per_image():
     Given:
         - No argument is required
     Then:
-        - set the image d data format to 'channel_first'
         - call get_reduce_axes with per_image=True and image data format required to be 
             'channel_first'
     Assert:
         - resulting reduce axes is [2, 3]
     '''
-    K.set_image_data_format('channels_first')
 
-    reduce_axes = get_reduce_axes(per_image=True)
+    reduce_axes = get_reduce_axes(per_image=True, data_format='channels_first')
 
     assert np.all([2, 3] == reduce_axes)

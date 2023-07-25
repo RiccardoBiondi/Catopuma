@@ -13,6 +13,8 @@ from typing import Optional, List, Tuple, Dict, NoReturn, Union
 
 from catopuma.core.functions import get_reduce_axes, average, gather_channels
 
+# TODO: here all the functions works with the tensorflow.keras backend. This could lead to some incompatibilities with the torch API.
+# son find a way to solve this and to not assume the backwend
 
 def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weights: Union[List[float], float] = 1.,  indexes: List[int] = None, per_image: bool = False, data_format: str = 'channels_last'):
     '''
@@ -66,14 +68,11 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weight
     score: flaot
         f score resulting form the computation. It is in [0, 1]
     '''
-
     gt = gather_channels(y_true, indexes=indexes, data_format=data_format)
     pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
 
     # clip the values to avoid NaN's and Inf's
-    pr = K.clip(pr, K.epsilon(), 1 - K.epsilon())
-
-    axes = get_reduce_axes(per_image)
+    axes = get_reduce_axes(per_image=per_image, data_format=data_format)
 
     # calculate score
     tp = K.sum(gt * pr, axis=axes)

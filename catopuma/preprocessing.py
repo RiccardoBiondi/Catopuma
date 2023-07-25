@@ -105,4 +105,4 @@ class PreProcessing(PreProcessingBase):
 
         X = self.standardizer(X, axis=axis)
 
-        return tf.convert_to_tensor(X), tf.convert_to_tensor(y)
+        return X, y # remove  the conversion to tensor and make it explicit only on the feeder (both for tensorflow and torch implementations)

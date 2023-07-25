@@ -12,6 +12,7 @@ import numpy as np
 from typing import Optional, Tuple, List, Dict
 from enum import Enum
 
+import tensorflow as tf
 import tensorflow.keras.backend as K
 
 __author__ = ['Riccardo Biondi']
@@ -139,22 +140,22 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
         x = K.permute_dimensions(x, (1, 0, 2, 3))
     
     else:
-        raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are "channel_last", "channel_first"')
+        raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are "channels_last", "channels_first"')
 
     return x   
 
 
-def get_reduce_axes(per_image: bool = False, **kwargs) -> List[int]:
+def get_reduce_axes(per_image: bool = False, data_format: str = 'channels_last') -> List[int]:
     '''
     '''
 
-    axes = [1, 2] if K.image_data_format() == 'channels_last' else [2, 3]
+    axes = [1, 2] if data_format == 'channels_last' else [2, 3]
     if not per_image:
         axes.insert(0, 0)
     return axes
 
 
-def gather_channels(*xs, indexes: Tuple[int] = None, data_format: str = 'channels_last') -> np.ndarray:
+def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str = 'channels_last') -> np.ndarray:
     '''
     '''
     if indexes is None:

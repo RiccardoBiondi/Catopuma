@@ -57,3 +57,27 @@ def test_f_score_is_in_0_1(n_channels, beta, smooth, data_format, per_image):
     
     assert result >= 0.
     assert result <= 1.
+
+
+@given(st.integers(2, 16), st.integers(1, 4))
+def test_f_score_all_zero_is_zero(batch_size, n_channels):
+    '''
+    Test that the f_score b=1. (i.e. dice loss) is zero when a zero target image is passed.
+
+    Given
+        - batch_size
+        - number of channels
+    Then
+        - generate a zero target and prediction image
+        - compute the f_score
+    Assert
+        - f_score is 0.
+    '''
+
+    img = np.zeros((batch_size, 64, 64, n_channels))
+    img = img.astype(np.float32) 
+    img = tf.convert_to_tensor(img)
+
+    res = f_score(img, img)
+
+    np.isclose(res, 0.)
