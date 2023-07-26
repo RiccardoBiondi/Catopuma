@@ -43,12 +43,11 @@ class SimpleITKUploader(UploaderBase):
     def __call__(self, *path: Tuple[str]) -> Tuple[np.ndarray]:
         '''
         '''
-
         img = sitk.ReadImage(path[0]) # input path must be first
         tar = sitk.ReadImage(path[1]) # target path must be second
 
         # convert the images to array
-        img = sitk.GetArrayViewFromImage(img)
+        img = sitk.GetArrayFromImage(img)
         tar = sitk.GetArrayFromImage(tar)
 
         img = np.expand_dims(img, axis=self.EXPANSION_AXIS[self.data_format])

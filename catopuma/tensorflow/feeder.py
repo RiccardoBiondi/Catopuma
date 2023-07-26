@@ -119,16 +119,19 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
         # load the image and the labels
         X, y = list(zip(*[self.uploader(img, tar) for img, tar in zip(self.img_paths[idxs], self.tar_paths[idxs])]))
 
+        X = np.asarray(X)
+        y = np.asarray(y)
+
         # now apply eventual data augmentation 
         if self.augmentation_strategy is not None:
-            X, y = self.augmentation_strategy(np.asarray(X), np.asarray(y))
+            X, y = self.augmentation_strategy(X, y)
 
         # and the specified pre-processing
         if self.preprocessing is not None:
-            X, y = self.preprocessing(np.asarray(X), np.asarray(y))
+            X, y = self.preprocessing(X, y)
 
-        return tf.convert_to_tensor(X), tf.convert_to_tensor(y) # add here the conversion to tensor object, and work with nummpy array for the preprocessing and augmentation steps
-
+        #return X, y
+        return tf.convert_to_tensor(X, dtype='float'), tf.convert_to_tensor(y, dtype='float')
     def on_epoch_end(self):
         '''
         Function called at the end of each epoch.
