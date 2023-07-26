@@ -4,7 +4,7 @@ and tergetes.
 '''
 
 import os
-from typing import Tuple, NoReturn
+from typing import Tuple, NoReturn, Dict
 import numpy as np
 import SimpleITK as sitk
 import tensorflow as tf
@@ -17,16 +17,28 @@ __email__ = ['riccardo.biondi7@unibo.it']
 
 class SimpleITKUploader(UploaderBase):
     '''
-    Class to upload and 
+    Class to upload medical image formats, based on SimpleITK image reader;
+    therefore the allowed data format are the ones specified in https://simpleitk.readthedocs.io/en/master/IO.html.
+    This reader allows to read both images and 3D volumes.
+
+    Parameters
+    ----------
+    data_format: str (default 'channels_last')
+        Specify the shape of the returned image or volume.
+        Can be either 'channels_first', i.e. (channels, ...), or channels_last, i.e. (..., channels). 
     '''
+
+    EXPANSION_AXIS: Dict[str, int] = {
+        'channels_last': -1,
+        'channels_first': 0}
 
     def __init__(self, data_format: str = 'channels_last') -> None:
 
         super().__init__()
-        if data_format in ['channels_first', 'channels_last']:
+        if data_format in self.EXPANSION_AXIS:
             self.data_format = data_format
         else:
-            raise ValueError(f'{data_format} is not allowed')
+            raise ValueError(f'{data_format} is not allowed. Allowed data formats:  {self.EXPANSION_AXIS.keys()}')
 
     def __call__(self, *path: Tuple[str]) -> Tuple[np.ndarray]:
         '''
@@ -36,19 +48,20 @@ class SimpleITKUploader(UploaderBase):
         tar = sitk.ReadImage(path[1]) # target path must be second
 
         # convert the images to array
-        img = sitk.GetArrayViewFromImage(img)[..., np.newaxis]
-        tar = sitk.GetArrayFromImage(tar)[..., np.newaxis]
+        img = sitk.GetArrayViewFromImage(img)
+        tar = sitk.GetArrayFromImage(tar)
 
-        if self.data_format == 'channels_first':
-            img = img.transpose(2, 0, 1)
-            tar = tar.transpose(2, 0, 1)
+        img = np.expand_dims(img, axis=self.EXPANSION_AXIS[self.data_format])
+        tar = np.expand_dims(tar, axis=self.EXPANSION_AXIS[self.data_format])
+
         return img, tar
 
 
 class LazyPatchBaseUploader(UploaderBase):
     '''
     Loader to peform a patch base lazy loading of medical images. 
-    The loader is based on the SimpleITK reader.
+    The loader is based on the SimpleITK reader, therefore the allowed data format are specified 
+    in https://simpleitk.readthedocs.io/en/master/IO.html
 
     This implementation is inspired by the one of Gianluca Carlini:
     https://github.com/GianlucaCarlini/Segmentation3D/blob/main/loaders/lazy_loaders.py
@@ -67,18 +80,22 @@ class LazyPatchBaseUploader(UploaderBase):
         or 'channels_first' (i.e., (batch_size, w, h, channels))
 
     '''
-    
+
+    EXPANSION_AXIS: Dict[str, int] = {
+        'channels_last': -1,
+        'channels_first': 0}
+
     def __init__(self, patch_size: Tuple[int], threshold: float = -1., data_format: str = 'channels_last') -> None:
-        
+
         super().__init__()
-        if data_format in ['channels_first', 'channels_last']:
+        if data_format in self.EXPANSION_AXIS.keys():
             self.data_format = data_format
         else:
-            raise ValueError(f'{data_format} is not allowed')
+            raise ValueError(f'{data_format} is not allowed. Allowed data formats:  {self.EXPANSION_AXIS.keys()}')
             
         self.patch_size = patch_size
         self.threshold = threshold
-    
+
     def __call__(self, *path: Tuple[str]) -> Tuple[np.array]:
         
         reader = sitk.ImageFileReader()
@@ -96,23 +113,20 @@ class LazyPatchBaseUploader(UploaderBase):
             patch_origin = self._samplePatchOrigin(image_size)
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
-            y = sitk.GetArrayFromImage(reader.Execute())[..., np.newaxis]
+            y = sitk.GetArrayFromImage(reader.Execute())
             
             if np.sum(y > 0.0) > self.threshold * np.prod(np.asarray(self.patch_size)):
                 condition = False
             
         _ = reader.SetFileName(path[0])
-        X = sitk.GetArrayFromImage(reader.Execute())[..., np.newaxis]
-        
-        if self.data_format == 'channels_first':
-            X = X.transpose(2, 0, 1)
-            y = y.transpose(2, 0, 1)
+        X = sitk.GetArrayFromImage(reader.Execute())
+
+        X = np.expand_dims(X, axis=self.EXPANSION_AXIS[self.data_format])
+        y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
 
         return X, y
-            
-        
-        # extract and return (as batch and channel shaped)
-    
+
+
     def _samplePatchOrigin(self, image_size: Tuple[int]) -> Tuple[int]:
         '''
         Sample the patch origin according to a uniform distribution ensuring 
