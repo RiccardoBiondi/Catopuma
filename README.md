@@ -34,20 +34,25 @@ CATOPUMA is a Python package that offers customizable advanced TensorFlow object
 
 The main functionalities of CATOPUMA are as follows:
 
-  - Feeder: This module contains claasses to helps load images batch-wise from local directories and eventuallly perform data augmentation and image preprocessing on the fly.
+  - Feeder: This module contains classes to helps load images batch-wise from local directories and eventuallly perform data augmentation and image preprocessing on the fly.
 
   - Losses: The losses module provide a series of custom losses. The overload if the arimetic operators allows to easy combine different losses.
 
   - Preprocessing: CATOPUMA provides the implementation of some classes to easily perform the basic preprocessing steps on images and labels
 
-  - Core: the core functionality of catopèuma are the bastract classess providing a base for each of the basic functionality (like preprocessin, loss, data augmentation, etc.), allowing an easy customization of the various objects,,
+  - Augmentation: CATOPUMA provides some classes to easily perform data augmentation.
+  These classes are mainly based on albumentations.
+
+  - Core: the core functionality of catopèuma are the bastract classess providing a base for each of the basic functionality (like preprocessin, loss, data augmentation, etc.), allowing an easy customization of the various objects.
 
 Overall, CATOPUMA simplifies the process of preparing image datasets for deep learning models by providing convenient classes and functions for loading, augmenting, and preprocessing images
 
 ## Installation
 
 CATOPUMA offers different installation way.
-The installation process is the same for each Operative System
+The installation process is the same for each Operative System.
+
+Supported python version: ![Python version](https://img.shields.io/badge/python-3.8|3.9|3.10|3.11-blue.svg).
 
 ### Install with pip
 
@@ -93,6 +98,8 @@ You can run the full set of test with:
 ```
 
 ## Getting Started
+
+Once you have installed the 
 
 ## License
 

@@ -26,7 +26,7 @@ author = 'Riccardo Biondi, Nico Curti'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '0.0.1.dev1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -110,7 +110,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PardoFelisdoc'
+htmlhelp_basename = 'CATOPUMAdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
