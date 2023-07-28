@@ -31,6 +31,10 @@ BASE_DATA_FORMAT_REDUCTION_AXIS: Dict[str, List[int]] =   {
                                                                 'channels_last': [2, 3]
                                                                 }
 
+BASE_DATA_FORMAT_GATHING_AXIS: Dict[str, List[int]] = {
+                                                        'channels_first': 1,
+                                                        'channels_last': -1}
+
 
 
 def _get_required_axis(per_image: bool = False, per_channel: bool = False) -> Optional[Tuple[int]]:
@@ -131,18 +135,10 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
     if indexes is None:
         return indexes
 
-    if data_format == 'channels_last':
-        x = K.permute_dimensions(x, (3, 0, 1, 2))
-        x = K.gather(x, indexes)
-        x = K.permute_dimensions(x, (1, 2, 3, 0))
-
-    elif data_format == 'channels_first':
-        x = K.permute_dimensions(x, (1, 0, 2, 3))
-        x = K.gather(x, indexes)
-        x = K.permute_dimensions(x, (1, 0, 2, 3))
+    if data_format not in BASE_DATA_FORMAT_GATHING_AXIS.keys():
+        raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are {BASE_DATA_FORMAT_GATHING_AXIS.keys()}')
     
-    else:
-        raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are "channels_last", "channels_first"')
+    x = tf.gather(x, indexes, axis=BASE_DATA_FORMAT_GATHING_AXIS[data_format])        
 
     return x   
 
