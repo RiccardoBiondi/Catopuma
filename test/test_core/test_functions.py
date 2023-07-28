@@ -3,15 +3,14 @@ from hypothesis import given, settings
 import hypothesis.strategies as st
 
 import numpy as np
-import tensorflow.keras.backend as K
-
+#import tensorflow.keras.backend as K
+import catopuma
 # import functions to test
 from catopuma.core.functions import _get_required_axis
 from catopuma.core.functions import _gather_channels
 from catopuma.core.functions import get_reduce_axes
 from catopuma.core.functions import gather_channels
 from catopuma.core.functions import average
-
 
 __author__ = ['Riccardo Biondi']
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'), min_codepoint=65, max_codepoint=90)

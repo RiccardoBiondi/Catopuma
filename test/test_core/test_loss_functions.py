@@ -11,8 +11,8 @@ from hypothesis import given, settings
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras.backend as K
-
+import catopuma
+from catopuma.core.framework import _FRAMEWORK_BACKEND as K
 
 from catopuma.core._loss_functions import f_score
 

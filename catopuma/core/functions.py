@@ -13,7 +13,9 @@ from typing import Optional, Tuple, List, Dict
 from enum import Enum
 
 import tensorflow as tf
-import tensorflow.keras.backend as K
+#import tensorflow.keras.backend as K
+import catopuma
+from catopuma.core.framework import _FRAMEWORK_BACKEND as K
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
@@ -175,5 +177,3 @@ def average(x: np.ndarray, per_image: bool = False, class_weights: Optional[np.a
     if class_weights is not None:
         x = x * class_weights
     return K.mean(x)
-
-
