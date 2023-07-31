@@ -3,6 +3,7 @@
 #from catopuma.losses import *
 #from catopuma.uploader import *
 import os
+#import importlib
 from catopuma.__version__ import __version__
 import catopuma.core.framework as fw
 from typing import Tuple
@@ -56,10 +57,41 @@ def set_framework(name: str) -> None:
 
         fw._FRAMEWORK_BACKEND = keras.backend
         fw._FRAMEWORK = keras
-    
-    
- 
-_framework = os.environ.get('SM_FRAMEWORK', fw._DEFAULT_FRAMEWORK_NAME)
-set_framework(_framework)
 
-print(framework())
+#spam_loader = importlib.find_loader('spam')
+#found = spam_loader is not None
+
+"""
+def  set_supported_frameworks() -> None:
+    '''
+    Function to set the catopuma.core.framework._SUPPORTED_FRAMEWORKS according to 
+    the installed libraries; i.e. check if tensorflow, keras and pytorch are available.
+    '''
+
+    sup_frameworks = []
+
+    try: 
+        import keras
+        sup_frameworks.append(fw._KERAS_FRAMEWORK_NAME)
+    except:
+        pass
+
+    try: 
+        import tensorflow.keras
+        sup_frameworks.append(fw._TF_KERAS_FRAMEWORK_NAME)
+    except:
+        pass
+
+    #try: 
+    import torch
+    #    sup_frameworks.append(fw._TORCH_FRAMEWORK_NAME)
+    #except:
+    #    pass
+
+    fw._SUPPORTED_FRAMEWORKS = sup_frameworks
+"""
+
+# now set the frameworks
+#set_supported_frameworks()
+_framework = os.environ.get('CATOPUMA_FRAMEWORK', fw._DEFAULT_FRAMEWORK_NAME)
+set_framework(_framework)

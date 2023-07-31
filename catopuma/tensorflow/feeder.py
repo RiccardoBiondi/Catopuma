@@ -6,6 +6,11 @@ import numpy as np
 import tensorflow as tf
 from typing import List, Tuple, Optional, NoReturn
 
+import catopuma
+
+# This is the tensorflow interface, so the kbackend is automatically setted to tensorflow
+catopuma.set_framework('keras')
+
 from catopuma.uploader import SimpleITKUploader
 from catopuma.core.base import UploaderBase, PreProcessingBase, DataAgumentationBase
 

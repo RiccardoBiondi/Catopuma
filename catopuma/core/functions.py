@@ -12,14 +12,13 @@ import numpy as np
 from typing import Optional, Tuple, List, Dict
 from enum import Enum
 
-import tensorflow as tf
-#import tensorflow.keras.backend as K
 import catopuma
+import tensorflow as tf
 from catopuma.core.framework import _FRAMEWORK_BACKEND as K
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
-__all__ = ['_get_required_axis']
+__all__ = ['gather_channels', 'average', 'get_reduce_axes']
 
 
 # Some consant definition
@@ -33,7 +32,8 @@ BASE_DATA_FORMAT_REDUCTION_AXIS: Dict[str, List[int]] =   {
 
 BASE_DATA_FORMAT_GATHING_AXIS: Dict[str, List[int]] = {
                                                         'channels_first': 1,
-                                                        'channels_last': -1}
+                                                        'channels_last': -1
+                                                        }
 
 
 
@@ -166,7 +166,9 @@ def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str =
 
 def average(x: np.ndarray, per_image: bool = False, class_weights: Optional[np.array] = None, **kwargs) -> float:
     '''
-    Average the array 
+    Average the array according to the loss computation specification.
+    If all the specification(per_image, per_channel) are False, the resulting values is the input one.
+    
     '''
     if per_image:
         x = K.mean(x, axis=0)
