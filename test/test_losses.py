@@ -10,6 +10,7 @@ import hypothesis.strategies as st
 from hypothesis import given, settings
 
 import numpy as np
+import catopuma
 import tensorflow as tf
 # import the class to test
 from catopuma.losses import DiceLoss

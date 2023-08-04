@@ -1,3 +1,10 @@
+'''
+Module for the implementation of the loss base classes.
+It contains the base abstract class BaseLoss and the implementation of the basic aritmetic operations.
+It is possible to sum, subtract, multiply, divide and power two losses or a loss and a float.
+If a custom loss is implemented, it must inherit from BaseLoss and implement the __call__ method.
+'''
+
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any, Tuple, List, Union, TypeVar
@@ -9,7 +16,7 @@ Self = TypeVar("Self", bound="BaseLoss")
 class BaseLoss(ABC):
     '''
     Base and abstract class to manage the different loss implementation.
-    Each 
+    Each loss must inherit from this class and implement the __call__ method.
     '''
     def __init__(self, name: str = None) -> None:
         
@@ -20,23 +27,45 @@ class BaseLoss(ABC):
 
     @abstractmethod
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        '''
+        Abstract method to implement the loss computation.
+
+        Parameters
+        ----------
+        y_true: np.ndarray
+            ground truth image. It must be a binary image.
+        y_pred: np.ndarray
+            predicted image. It must be a binary image.
+        '''
         raise NotImplementedError("losses must implement a __call__ method")
     
     @property
     def __name__(self) -> str:
+        '''
+        Loss name.
+        '''
         return self._name
         
 
     @property
     def name(self) -> str:
+        '''
+        Loss name.
+        '''
         return self.__name__
     
     @__name__.setter
     def __name__(self, t_name: str) -> None:
+        '''
+        Setter for the loss name.
+        '''
         self._name = t_name
 
     @name.setter
     def name(self, t_name: str) -> None:
+        '''
+        Setter for the loss name.
+        '''
         self._name = t_name
 
 
@@ -47,6 +76,17 @@ class BaseLoss(ABC):
     
     def __add__(self, other: Union[Self, float]) -> Self:
         '''
+        Method to sum two losses or a loss and a float.
+
+        Parameters
+        ----------
+        other: Union[Self, float]
+            second loss to sum or constant to sum. It can be either a loss or a float.
+        
+        Returns
+        --------
+        Self
+            the sum of the two losses.
         '''
 
         return LossSum(self, other)
@@ -54,12 +94,34 @@ class BaseLoss(ABC):
 
     def __radd__(self, other: Union[Self, float]) -> Self:
         '''
+        Method to sum two losses or a loss and a float.
+
+        Parameters
+        ----------
+        other: Union[Self, float]
+            second loss to sum or constant to sum. It can be either a loss or a float.
+        
+        Returns
+        --------
+        Self
+            the sum of the two losses.
         '''
         
         return LossSum(self, other)
 
     def __sub__(self, other: Union[Self, float]) -> Self:
         '''
+        Method to subtract two losses or a loss and a float.
+
+        Parameters
+        ----------
+        other: Union[Self, float]
+            second loss to subtract or constant to subtract. It can be either a loss or a float.
+        
+        Returns
+        --------
+        Self
+            the subtraction of the two losses.
         '''
         
         return LossSubtract(self, other)
@@ -226,6 +288,14 @@ class LossDivide(BaseLoss):
 
 class LossPow(BaseLoss):
     '''
+    BaseLoss specialization to perform the power between two losses or a loss and a float.
+    
+    Parameters
+    ----------
+    loss_1: BaseLoss
+        
+    loss_2: Union[BaseLoss, float]
+        second loss to sum or constant to sum. It can be either a loss or a float.
     '''
 
     def __init__(self, loss_1: BaseLoss, loss_2: Union[BaseLoss, float]):
@@ -242,6 +312,8 @@ class LossPow(BaseLoss):
 
     def __call__(self, y_true, y_pred):
         '''
+        Compute the sum between the two losses.
+
         '''
         if isinstance(self.loss_2, BaseLoss):
 

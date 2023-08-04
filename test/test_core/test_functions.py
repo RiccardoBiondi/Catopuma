@@ -11,7 +11,7 @@ import numpy as np
 #import tensorflow.keras.backend as K
 import catopuma
 # import functions to test
-from catopuma.core.functions import _get_required_axis
+
 from catopuma.core.functions import _gather_channels
 from catopuma.core.functions import get_reduce_axes
 from catopuma.core.functions import gather_channels
@@ -23,100 +23,9 @@ legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'), min_codepoin
 
 text_strategy = st.text(alphabet=legitimate_chars, min_size=1, max_size=15)
 
-AVAILABLE_FRAMEWORKS = catopuma.core.framework._SUPPORTED_FRAMEWORKS
 
-
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_required_axis_default(framework: str):
-    '''
-    Given: 
-        - Testing framework
-    Then:
-        - set the framework to the given one
-        - call _get_required_axis with default arguments
-    Assert:
-        - return None
-    '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    required_axis  = _get_required_axis()
-    
-    assert required_axis is None
-
-
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_required_axis_per_image(framework: str):
-    '''
-    Given: 
-        - Testing framework
-    Then:
-        - set the framework to the given one
-        - call _get_required_axis with per_image=True
-    Assert:
-        - required axis is tuple
-        - len of the tuple is 3
-        - the axis are 1 , 2 and 3 (in this order)
-        - the axis are integer types
-    '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    required_axis = _get_required_axis(per_image=True)
-    
-    assert isinstance(required_axis, tuple)
-    assert len(required_axis) == 3
-    assert isinstance(required_axis[0], int) & isinstance(required_axis[1], int) & isinstance(required_axis[2], int)
-    assert (required_axis[0] == 1) & (required_axis[1] == 2) & (required_axis[2] == 3)
-
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_required_axis_per_channel(framework: str):
-    '''
-    Given: 
-        - Testing framework
-    Then:
-        - set the framework to the given one
-        - call _get_required_axis with per_channel=True
-    Assert:
-        - required axis is tuple
-        - len of the tuple is 3
-        - the axis are 0, 1 and 2
-        - the axis are integer types
-    '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    required_axis = _get_required_axis(per_channel=True)
-    
-    assert isinstance(required_axis, tuple)
-    assert len(required_axis) == 3
-    assert isinstance(required_axis[0], int) & isinstance(required_axis[1], int) & isinstance(required_axis[2], int)
-    assert (required_axis[0] == 0) & (required_axis[1] == 1) & (required_axis[2] == 2)
-
-
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_required_axis_per_image_per_channel(framework: str):
-    '''
-    Given: 
-        - Testing framework
-    Then:
-        - set the framework to the given one
-        - call _get_required_axis with per_image=True, per_channel=True
-    Assert:
-        - required axis is tuple
-        - len of the tuple is 2
-        - the axis are 1 and 2 (in this order)
-        - the axis are integer types
-    '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    required_axis = _get_required_axis(per_image=True, per_channel=True)
-    
-    assert isinstance(required_axis, tuple)
-    assert len(required_axis) == 2
-    assert isinstance(required_axis[0], int) & isinstance(required_axis[1], int)
-    assert (required_axis[0] == 1) & (required_axis[1] == 2)
-
-
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), text_strategy)
-def test__gather_channel_raise_value_error(framework: str, data_format: str) :
+@given(text_strategy)
+def test__gather_channel_raise_value_error(data_format: str) :
     '''
     Test the function _gather_channel rainse a ValueError when the wron 
     datafromat is speccified
@@ -125,14 +34,12 @@ def test__gather_channel_raise_value_error(framework: str, data_format: str) :
         - Testing framework
         - data_format str not matching the functoin requirements
     Then:
-        - set the framework to the given one
         - construct a dummy tensor and a dummy index to call the function
         - call the function _gater_channel
     Assert:
         value error is raised
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
+
     dummy_tensor = np.zeros(shape=(1, 64, 64, 1), dtype=np.float32)
     dummy_index = (1)
 
@@ -141,9 +48,9 @@ def test__gather_channel_raise_value_error(framework: str, data_format: str) :
         x = _gather_channels(x=dummy_tensor, indexes=dummy_index, data_format=data_format)
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
+@given(st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
 @settings(max_examples=10, deadline=None)
-def test__gater_channel_channel_first(framework: str, number_of_channels, indexes):
+def test__gater_channel_channel_first(number_of_channels, indexes):
     '''
     Test if the function correctly gathe a single channel in channel first modality
 
@@ -152,15 +59,13 @@ def test__gater_channel_channel_first(framework: str, number_of_channels, indexe
         - an int, representing the number of channels. 
         - an list int representing the channels to gate
     Then:
-        - set the framework to the given one
         - create an image with the given number of channel, where each channel as a constant value equal to its index
         - gathe the required channels in channel first data format
     Assert:
         - gathed thensor shape is (batch_size, n_selected_channel, height, width)
         - the resulting unique values are equal to the gathed channel index
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
+    
     #construct the tensor
 
     x = np.concatenate([np.full((1, 1, 64, 64), i) for i in range(0, number_of_channels)], axis=1)
@@ -174,9 +79,9 @@ def test__gater_channel_channel_first(framework: str, number_of_channels, indexe
     assert np.all(np.unique(gater) == sorted(indexes))
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
+@given(st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
 @settings(max_examples=10, deadline=None)
-def test__gater_channel_channel_last(framework: str, number_of_channels, indexes):
+def test__gater_channel_channel_last(number_of_channels, indexes):
     '''
     Test if the function correctly gathe a single channel in channel first modality
 
@@ -185,15 +90,12 @@ def test__gater_channel_channel_last(framework: str, number_of_channels, indexes
         - an int, representing the number of channels. 
         - an list int representing the channels to gate
     Then:
-        - set the framework to the given one
         - create an image with the given number of channel, where each channel as a constant value equal to its index
         - gathe the required channels in channel last data format
     Assert:
         - gathed thensor shape is (batch_size, height, width, n_selected_channel)
         - the resulting unique values are equal to the gathed channel index
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
     #construct the tensor
 
     x = np.concatenate([np.full((1, 64, 64, 1), i) for i in range(0, number_of_channels)], axis=-1)
@@ -209,89 +111,312 @@ def test__gater_channel_channel_last(framework: str, number_of_channels, indexes
     assert np.all(np.unique(gater) == sorted(indexes))
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_reduce_axis_channel_last(framework: str):
+def test_get_reduce_axes_channel_last_2d():
     '''
     Test that the correct reduction axis is returned when the dataformat is channel_last 
-    and per_image is set to False.
+    and per_image/per_chennels are set to False. Consider the case of a 2d image.
 
     Given:
-        - - Testing framework
+        - No parameter required
     Then:
-        - set the framework to the given one
-        - call get_reduce_axes with per_image=False and image data format reuired to be 
+        - call get_reduce_axes with per_image=False, per_channel=False and image data format required to be 
+            'channel_last'
+    Assert:
+        - resulting reduce axes is [0, 1, 2, 3]
+    '''
+    reduce_axes = get_reduce_axes(per_image=False, per_channel=False)
+
+    assert np.all([0, 1, 2, 3] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_last_per_image_2d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_last 
+    and per_image is set to True. Consider the case of a 2d image.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=True and image data format required to be 
+            'channel_last'
+    Assert:
+        - resulting reduce axes is [1, 2, 3]
+    '''
+    reduce_axes = get_reduce_axes(per_image=True)
+
+    assert np.all([1, 2, 3] == reduce_axes)
+
+
+
+def test_get_reduce_axes_channel_last_per_channel_2d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_last 
+    and per_channel is set to True. Consider the case of a 2d image.
+
+    Given:
+        - No parameter required
+    Then:
+
+        - call get_reduce_axes with per_channel=True, per_image=False and image data format required to be 
             'channel_last'
     Assert:
         - resulting reduce axes is [0, 1, 2]
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    reduce_axes = get_reduce_axes(per_image=False)
+    reduce_axes = get_reduce_axes(per_channel=True)
 
     assert np.all([0, 1, 2] == reduce_axes)
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_reduce_axis_channel_last_per_image(framework: str):
+def test_get_reduce_axes_channel_last_per_image_per_channel_2d():
     '''
-    Test that the correct reduction axis is returned when the dataformat is channel_last 
-    and per_image is set to False.
+    Test that the correct reduction axis is returned when the dataformat is channel_last and 
+    both per_image and per_channel are set to True. Consider the case of a 2d image.
 
     Given:
-        - Testing framework
+        - No parameter required
     Then:
-        - set the framework to the given one
-        - call get_reduce_axes with per_image=True and image data format required to be 
-            'channel_last'
+        - call get_reduce_axes with per_image=True, per_channel=True and image data format required to be
     Assert:
         - resulting reduce axes is [1, 2]
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    reduce_axes = get_reduce_axes(per_image=True)
 
+    reduce_axes = get_reduce_axes(per_image=True, per_channel=True)
     assert np.all([1, 2] == reduce_axes)
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_reduce_axis_channel_first(framework: str):
+def test_get_reduce_axes_channel_first_2d():
     '''
-    Test that the correct reduction axis is returned when the dataformat is channel_last 
-    and per_image is set to False.
+    Test that the correct reduction axis is returned when the dataformat is channel_first 
+    and per_image/per_channel are set to False.
 
     Given:
-        - Testing framework
+        - no parameter required
     Then:
-        - set the framework to the given one
-        - call get_reduce_axes with per_image=False and image data format required to be 
+        - call get_reduce_axes with per_image=False, per_channel=False and image data format required to be 
+            'channel_first'
+    Assert:
+        - resulting reduce axes is [0, 1, 2, 3]
+    '''
+    reduce_axes = get_reduce_axes(data_format='channels_first')
+
+    assert np.all([0, 1, 2, 3] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_first_per_image_2d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_first 
+    and per_image is set to True, per_channel is set to False. Consider a 2d image case.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=True, per_channel=False and image data format required to be 
+            'channel_first'
+    Assert:
+        - resulting reduce axes is [1, 2, 3]
+    '''
+    reduce_axes = get_reduce_axes(per_image=True, data_format='channels_first')
+
+    assert np.all([1, 2, 3] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_first_per_channel_2d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_first 
+    and per_image is set to False, per_channel is set to True. Consider a 2d image case.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=False, per_channel=True and image data format required to be 
             'channel_first'
     Assert:
         - resulting reduce axes is [0, 2, 3]
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    reduce_axes = get_reduce_axes(per_image=False, data_format='channels_first')
+    reduce_axes = get_reduce_axes(per_channel=True, data_format='channels_first')
 
     assert np.all([0, 2, 3] == reduce_axes)
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS))
-def test_get_reduce_axis_channel_first_per_image(framework: str):
+def test_get_reduce_axes_channel_first_per_image_per_channel_2d():
     '''
-    Test that the correct reduction axis is returned when the dataformat is channel_last 
-    and per_image is set to False.
-
+    Test that the correct reduction axis is returned when the dataformat is channel_first
+    and both per_image and per_channel are set to True. Consider a 2d image case.
+    
     Given:
-        - Testing framework
+        - No parameter required
     Then:
-        - set the framework to the given one
-        - call get_reduce_axes with per_image=True and image data format required to be 
+        - call get_reduce_axes with per_image=True, per_channel=True and image data format required to be
             'channel_first'
     Assert:
         - resulting reduce axes is [2, 3]
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
-    reduce_axes = get_reduce_axes(per_image=True, data_format='channels_first')
 
+    reduce_axes = get_reduce_axes(per_image=True, per_channel=True, data_format='channels_first')
+    
     assert np.all([2, 3] == reduce_axes)
+
+@given(text_strategy)
+@settings(max_examples=10, deadline=None)
+def test_get_reduce_axes_raise_value_error(data_format: str):
+    '''
+    Test that get_reduce_axes raise ValueError when the dataformat is not valid.
+
+    Given:
+        - data_format str not matching the functoin requirements
+    Then:
+        - call get_reduce_axes with given image data format
+    Assert:
+        - ValueError is raised
+    '''
+
+    with pytest.raises(ValueError):
+        reduce_axes = get_reduce_axes(data_format=data_format)
+
+
+
+
+def test_get_reduce_axes_channel_last_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_last 
+    and per_image/per_chennels are set to False. Consider the case of a 3d image.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=False, per_channel=False and image data format required to be 
+            'channel_last'
+    Assert:
+        - resulting reduce axes is [0, 1, 2, 3, 4]
+    '''
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_image=False, per_channel=False)
+
+    assert np.all([0, 1, 2, 3, 4] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_last_per_image_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_last 
+    and per_image is set to True. Consider the case of a 3d image.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=True and image data format required to be 
+            'channel_last'
+    Assert:
+        - resulting reduce axes is [1, 2, 3, 4]
+    '''
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True)
+
+    assert np.all([1, 2, 3, 4] == reduce_axes)
+
+
+
+def test_get_reduce_axes_channel_last_per_channel_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_last 
+    and per_channel is set to True. Consider the case of a 3d image.
+
+    Given:
+        - No parameter required
+    Then:
+
+        - call get_reduce_axes with per_channel=True, per_image=False and image data format required to be 
+            'channel_last'
+    Assert:
+        - resulting reduce axes is [0, 1, 2, 3]
+    '''
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_channel=True)
+
+    assert np.all([0, 1, 2, 3] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_last_per_image_per_channel_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_last and 
+    both per_image and per_channel are set to True. Consider the case of a 3d image.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=True, per_channel=True and image data format required to be
+    Assert:
+        - resulting reduce axes is [1, 2, 3]
+    '''
+
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True, per_channel=True)
+    assert np.all([1, 2, 3] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_first_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_first 
+    and per_image/per_channel are set to False. CPmsider the case of a 3d image.
+
+    Given:
+        - no parameter required
+    Then:
+        - call get_reduce_axes with per_image=False, per_channel=False and image data format required to be 
+            'channel_first'
+    Assert:
+        - resulting reduce axes is [0, 1, 2, 3, 4]
+    '''
+    reduce_axes = get_reduce_axes(tensor_dims=5, data_format='channels_first')
+
+    assert np.all([0, 1, 2, 3, 4] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_first_per_image_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_first 
+    and per_image is set to True, per_channel is set to False. Consider a 3d image case.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=True, per_channel=False and image data format required to be 
+            'channel_first'
+    Assert:
+        - resulting reduce axes is [1, 2, 3, 4]
+    '''
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True, data_format='channels_first')
+
+    assert np.all([1, 2, 3, 4] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_first_per_channel_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_first 
+    and per_image is set to False, per_channel is set to True. Consider a 3d image case.
+
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=False, per_channel=True and image data format required to be 
+            'channel_first'
+    Assert:
+        - resulting reduce axes is [0, 2, 3, 4]
+    '''
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_channel=True, data_format='channels_first')
+
+    assert np.all([0, 2, 3, 4] == reduce_axes)
+
+
+def test_get_reduce_axes_channel_first_per_image_per_channel_3d():
+    '''
+    Test that the correct reduction axis is returned when the dataformat is channel_first
+    and both per_image and per_channel are set to True. Consider a 3d image case.
+    
+    Given:
+        - No parameter required
+    Then:
+        - call get_reduce_axes with per_image=True, per_channel=True and image data format required to be
+            'channel_first'
+    Assert:
+        - resulting reduce axes is [2, 3, 4]
+    '''
+
+    reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True, per_channel=True, data_format='channels_first')
+    
+    assert np.all([2, 3, 4] == reduce_axes)

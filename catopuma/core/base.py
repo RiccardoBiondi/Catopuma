@@ -1,3 +1,8 @@
+'''
+Module containing the abstract class for the Uploader, PreProcesser and data Augmenter.
+Each specilized class could derive from the corresponding base.
+'''
+
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Any, Tuple, List, Union, TypeVar
@@ -5,7 +10,7 @@ from typing import Any, Tuple, List, Union, TypeVar
 
 class UploaderBase(ABC):
     '''
-    Base class for the vatìrious image rerder.
+    Base class for the various image reader.
     It's child calsses must hendling the reading of the images and labels.
     '''
 
@@ -20,6 +25,10 @@ class UploaderBase(ABC):
 
 
 class PreProcessingBase(ABC):
+    '''
+    Base class for the various preprocessing functions.
+    It's child classes must hendling the image and label preprocessing.
+    '''
     
     @abstractmethod
     def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -30,6 +39,8 @@ class PreProcessingBase(ABC):
 
 
 class DataAgumentationBase(ABC):
+    '''
+    '''
     
     @abstractmethod
     def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:

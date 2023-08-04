@@ -1,7 +1,8 @@
 """
 Functions Module
 
-This module implement some useful function that can be used inside the psecialized pre-processing, data augmentation and losses classes.
+This module implement some useful function that can be used inside the secialized pre-processing, data augmentation and losses classes.
+
 
 """
 
@@ -35,77 +36,8 @@ BASE_DATA_FORMAT_GATHING_AXIS: Dict[str, List[int]] = {
                                                         'channels_last': -1
                                                         }
 
-
-
-def _get_required_axis(per_image: bool = False, per_channel: bool = False) -> Optional[Tuple[int]]:
-    '''
-    Funtion to return the collapse axis from the given options
-    Parameters
-    ----------
-    per_image: bool
-        Specify if the process will run image-wise or on all the batch
-    per_channel: bool
-        Specify if the process will run image-wise or on all the channels
-    '''
-
-    if per_image is False and per_channel is False:
-        return None
-    elif per_image is True and per_channel is False:
-        return (1, 2, 3)
-    elif per_image is False and per_channel is True:
-        return (0, 1, 2)
-    elif per_image is True and per_channel is True:
-        return (1, 2)
-    
-
-def _get_roi(image: np.ndarray, thr: Optional[float] = None):
-    '''
-    Create a ROI by thresholding tha image above the given value (if specified).
-    Otherwise the whole image will be considered as ROI
-
-    Parameters
-    ----------
-    image: np.ndarray
-        image from which retrieve the ROI
-    thr: float (default None)
-        value to threshold above the image
-    
-    Return
-        roi: bool or nop.ndarray[bool]
-            mask to use as ROI
-    '''
-
-    if thr is not None:
-        roi = image > thr
-        return ~roi
-
-    return False
-
-
-def _mask(image: np.ndarray, roi: Optional[np.ndarray] = None, clip: float = 0.):
-    '''
-    Set all the values outside the rois to clip.
-    If the roi is not provided, return the image as it is
-
-    Parameters
-    ----------
-    image: np.ndarray
-        image to mask
-    roi: np.ndarray[bool], deafult None
-            roi to mask the image with
-    clip: float, default 0
-        value  to se the value outside the ROI
-    '''
-
-    if clip is not None:
-
-        image[roi] = clip
-        return image
-    return image
-
-
-
-def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'channel_last'): # TODO substitute the dataformat string with an Enum
+def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'channel_last'):
+    # TODO substitute the dataformat string with an Enum
     '''
     Retrieves the elements of indices indices in the tensor x.
 
@@ -129,8 +61,6 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
     This function is implemented to work only with 2D, multichannel, images
     '''
 
-    # TODO improve code efficiency
-
     # Retrieve all the indexes
     if indexes is None:
         return indexes
@@ -138,23 +68,58 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
     if data_format not in BASE_DATA_FORMAT_GATHING_AXIS.keys():
         raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are {BASE_DATA_FORMAT_GATHING_AXIS.keys()}')
     
+    # TODO here it is dependend to tensorflow, I have to make it compatible also to pytorch
     x = tf.gather(x, indexes, axis=BASE_DATA_FORMAT_GATHING_AXIS[data_format])        
 
     return x   
 
 
-def get_reduce_axes(per_image: bool = False, data_format: str = 'channels_last') -> List[int]:
+def get_reduce_axes(tensor_dims: int = 4, per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last') -> List[int]:
     '''
+    Return the axes to use to reduce the tensor according to the given specification.
+    If both per_image and per_channel are provided, then 
+
+    Parameters
+    ----------
+    tensor_dims: int (default 4)
+        dimensions of the tensor to reduce. Usually the dimension is 4, e.g. (batch_size, width, height, channels)
+        or 5, e.g. (batch_size, width, height, depth, channels)
     '''
 
-    axes = [1, 2] if data_format == 'channels_last' else [2, 3]
-    if not per_image:
-        axes.insert(0, 0)
-    return axes
+    if data_format not in BASE_DATA_FORMAT_GATHING_AXIS.keys():
+        raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are {BASE_DATA_FORMAT_GATHING_AXIS.keys()}')
+
+    reduction_axis = list(np.arange(0, tensor_dims))
+    
+    if per_image:
+        reduction_axis.remove(0)
+        
+    if per_channel:
+        
+        to_remove = 1 if data_format == 'channels_first' else max(reduction_axis)
+        reduction_axis.remove(to_remove)
+    
+    return reduction_axis
 
 
 def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str = 'channels_last') -> np.ndarray:
     '''
+    Gather the channels of the tensor according to the given specification.
+
+    Parameters
+    ----------
+    xs: List[tensor]
+        list of tensors to gather
+    indexes: Tuple[int]
+        tuple specifying the index to gathe
+    data_format: str
+        either 'channel_last' or 'channel_first'.
+        Specify the if the provided data in (batch_size, height, width, channel) or ( batch_size, channel, height, width) format.
+
+    Return
+    ------
+    xs: List[tensor]
+        gathered tensors. Each tensor is of the same type of the input ones
     '''
     if indexes is None:
         return xs
@@ -164,14 +129,37 @@ def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str =
     return [_gather_channels(x, indexes=indexes, data_format=data_format) for x in xs]
 
 
-def average(x: np.ndarray, per_image: bool = False, class_weights: Optional[np.array] = None, **kwargs) -> float:
+def average(x: np.ndarray, per_image: bool = False, per_channel=False,
+            class_weights: Optional[np.array] = None, data_format: str = 'channels_last') -> float:
     '''
-    Average the array according to the loss computation specification.
-    If all the specification(per_image, per_channel) are False, the resulting values is the input one.
+    Average the tensor to obtain a single value. The averaging is done according to the given specifications.
+    Moreover, if the class_weights are provided, the tensor is weighted before averaging.
+
+    Parameters
+    ----------
+    x: np.ndarray
+        tensor to average
+    per_image: bool (default False)
+        specify if the averaging will be done image-wise or on the whole batch
+    per_channel: bool (default False)
+        specify if the averaging will be done channel-wise or on the whole image 
+    class_weights: np.ndarray
+        weights to apply to the tensor before averaging
+    data_format: str (default 'channels_last)
+        either 'channel_last' or 'channel_first'.
+        Specify the if the provided data in (batch_size, height, width, channel) or ( batch_size, channel, height, width) format.
+
+    Return
+    ------
     
+
     '''
     if per_image:
         x = K.mean(x, axis=0)
+
     if class_weights is not None:
         x = x * class_weights
+    
+    if per_channel:
+        x = K.mean(x, axis=BASE_DATA_FORMAT_GATHING_AXIS[data_format]) 
     return K.mean(x)

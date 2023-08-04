@@ -20,17 +20,15 @@ from catopuma.core._loss_functions import f_score
 from catopuma.core._loss_functions import tversky_score
 
 ALLOWED_DATA_FORMATS =   ('channels_first', 'channels_last')
-AVAILABLE_FRAMEWORKS = catopuma.core.framework._SUPPORTED_FRAMEWORKS
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(3, 5), st.floats(1., 2.), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
+@given(st.integers(3, 5), st.floats(1., 2.), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
 @settings(max_examples=10, deadline=None)
-def test_f_score_is_in_0_1(framework, n_channels, beta, smooth, data_format, per_image):
+def test_f_score_is_in_0_1(n_channels, beta, smooth, data_format, per_image):
     '''
     Test that the f_score is ALWAISE in [0., 1.] indepentently to the 
     provided arguments and computation modalities.
 
     Given:
-        - Testing framework
         - number of image channels
         - beta
         - smoothing factor
@@ -47,8 +45,6 @@ def test_f_score_is_in_0_1(framework, n_channels, beta, smooth, data_format, per
         - f_score is higher or equal 0.
         - f_score is lower of  equal 1.
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
 
     y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
     y_true = tf.convert_to_tensor(y_true)
@@ -67,13 +63,12 @@ def test_f_score_is_in_0_1(framework, n_channels, beta, smooth, data_format, per
     assert result <= 1.
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(2, 16), st.integers(1, 4))
-def test_f_score_all_zero_is_zero(framework, batch_size, n_channels):
+@given(st.integers(2, 16), st.integers(1, 4))
+def test_f_score_all_zero_is_zero(batch_size, n_channels):
     '''
     Test that the f_score b=1. (i.e. dice loss) is zero when a zero target image is passed.
 
     Given:
-        - Testing framework
         - batch_size
         - number of channels
     Then:
@@ -83,8 +78,6 @@ def test_f_score_all_zero_is_zero(framework, batch_size, n_channels):
     Assert:
         - f_score is 0.
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
 
     img = np.zeros((batch_size, 64, 64, n_channels))
     img = img.astype(np.float32) 
@@ -100,15 +93,14 @@ def test_f_score_all_zero_is_zero(framework, batch_size, n_channels):
 # Now the tests for the twersky score
 #
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(3, 5), st.floats(0., 1.), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
+@given(st.integers(3, 5), st.floats(0., 1.), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
 @settings(max_examples=10, deadline=None)
-def test_tversky_score_is_in_0_1(framework, n_channels, alpha, smooth, data_format, per_image):
+def test_tversky_score_is_in_0_1(n_channels, alpha, smooth, data_format, per_image):
     '''
     Test that the tversky_score is ALWAISE in [0., 1.] indepentently to the 
     provided arguments and computation modalities.
 
     Given:
-        - Testing framework
         - number of image channels
         - alpha
         - smoothing factor
@@ -126,8 +118,6 @@ def test_tversky_score_is_in_0_1(framework, n_channels, alpha, smooth, data_form
         - tversky_score is higher or equal 0.
         - tversky_score is lower of  equal 1.
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
 
     beta = 1. - alpha
     y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
@@ -147,13 +137,12 @@ def test_tversky_score_is_in_0_1(framework, n_channels, alpha, smooth, data_form
     assert result <= 1.
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(2, 16), st.integers(1, 4), st.floats(0., 1.))
-def test_tversky_score_all_zero_is_zero(framework, batch_size, n_channels, alpha):
+@given(st.integers(2, 16), st.integers(1, 4), st.floats(0., 1.))
+def test_tversky_score_all_zero_is_zero(batch_size, n_channels, alpha):
     '''
     Test that the tversky_score b=1. (i.e. dice loss) is zero when a zero target image is passed.
 
     Given:
-        - Testing framework
         - batch_size
         - number of channels
         - alpha
@@ -165,8 +154,6 @@ def test_tversky_score_all_zero_is_zero(framework, batch_size, n_channels, alpha
     Assert:
         - tversky_score is 0.
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
 
     beta = 1. - alpha
     img = np.zeros((batch_size, 64, 64, n_channels))
@@ -179,14 +166,13 @@ def test_tversky_score_all_zero_is_zero(framework, batch_size, n_channels, alpha
 
 
 
-@given(st.sampled_from(AVAILABLE_FRAMEWORKS), st.integers(3, 5), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
+@given(st.integers(3, 5), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
 @settings(max_examples=10, deadline=None)
-def test_tversky_score_is_f_score_alpha_beta_05(framework, n_channels, smooth, data_format, per_image):
+def test_tversky_score_is_f_score_alpha_beta_05(n_channels, smooth, data_format, per_image):
     '''
     Test that the tversky_score is equal to f1_score (i.e., dice score) if alpha and beta parameters are equal to 0.5
 
     Given:
-        - Testing framework
         - number of image channels
         - smoothing factor
         - gathing channel list
@@ -202,8 +188,6 @@ def test_tversky_score_is_f_score_alpha_beta_05(framework, n_channels, smooth, d
     Assert:
         - tversky_score is close to f1_score
     '''
-    catopuma.set_framework(framework)
-    assume(catopuma.framework() == framework)
 
     y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
     y_true = tf.convert_to_tensor(y_true)

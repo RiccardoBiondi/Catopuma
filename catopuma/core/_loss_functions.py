@@ -72,7 +72,7 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weight
     gt = gather_channels(y_true, indexes=indexes, data_format=data_format)
     pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
 
-    # clip the values to avoid NaN's and Inf's
+    # Get the reduction axis to compute the final metric value
     axes = get_reduce_axes(per_image=per_image, data_format=data_format)
 
     # calculate score

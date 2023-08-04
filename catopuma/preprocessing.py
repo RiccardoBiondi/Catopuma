@@ -10,7 +10,7 @@ from typing import Union, Callable, Dict, Tuple
 
 from catopuma.core.abstraction import PreProcessingBase
 
-from catopuma.core.functions import _get_required_axis
+from catopuma.core.functions import get_reduce_axes
 from catopuma.core._preprocessing_functions import standard_scale
 from catopuma.core._preprocessing_functions import rescale
 from catopuma.core._preprocessing_functions import identity
@@ -101,7 +101,7 @@ class PreProcessing(PreProcessingBase):
         y = y.astype('float')
         y = (y == self.target_label).astype('float')
 
-        axis = _get_required_axis(per_image=self.per_image, per_channel=self.per_channel)
+        axis = get_reduce_axes(tensor_dims=len(X.shape), per_image=self.per_image, per_channel=self.per_channel, data_format=self.data_format)
 
         X = self.standardizer(X, axis=axis)
 
