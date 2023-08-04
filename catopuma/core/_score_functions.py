@@ -13,8 +13,10 @@ from typing import Optional, List, Tuple, Dict, NoReturn, Union
 
 from catopuma.core._base_functions import get_reduce_axes, average, gather_channels
 
-# TODO: here all the functions works with the tensorflow.keras backend. This could lead to some incompatibilities with the torch API.
-# son find a way to solve this and to not assume the backwend
+__author__ = ['Riccardo Biondi']
+__email__ = ['riccardo.biondi7@unibo.it']
+__all__ = ['f_score', 'tversky_score']
+             
 
 def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
             class_weights: Union[List[float], float] = 1.,  indexes: List[int] = None,
@@ -146,9 +148,6 @@ def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: f
 
     gt = gather_channels(y_true, indexes=indexes, data_format=data_format)
     pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
-
-    y_true = K.cast(y_true, 'float32')
-    y_pred = K.cast(y_pred, 'float32')
 
     axes = get_reduce_axes(tensor_dims=len(y_true.shape), per_channel=per_channel, per_image=per_image, data_format=data_format)
 

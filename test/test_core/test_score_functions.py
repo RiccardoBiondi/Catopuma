@@ -15,13 +15,37 @@ import numpy as np
 import tensorflow as tf
 
 import catopuma
+from catopuma.core.__framework import _FRAMEWORK_NAME
+from catopuma.core.__framework import _FRAMEWORK_BASE as F
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
 from catopuma.core._score_functions import f_score
 from catopuma.core._score_functions import tversky_score
 
 ALLOWED_DATA_FORMATS =   ('channels_first', 'channels_last')
 
-# fisrt of all define some helpe functions to manage the tensor depending on the framework
+# fisrt of all define some helpet functions to manage the tensor depending on the framework
+
+
+def _to_tensor(x : np.ndarray):
+    
+    if _FRAMEWORK_NAME == 'torch':
+        return F.from_numpy(x)
+    return F.convert_to_tensor(x)
+
+
+def _cast(x, new_type):
+
+    if _FRAMEWORK_NAME == 'torch':
+        return x.type(new_type)
+    return K.cast(x, new_type)
+
+def _permute_dimensions(x, indexes):
+
+    if _FRAMEWORK_NAME == 'torch':
+        return K.permute(x, indexes)
+    
+    return K.permute_dimensions(x, indexes) 
+# start the actual testing
 
 
 @given(st.integers(3, 5), st.floats(1., 2.), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans())
@@ -50,15 +74,15 @@ def test_f_score_is_in_0_1(n_channels, beta, smooth, data_format, per_image):
     '''
 
     y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
-    y_true = tf.convert_to_tensor(y_true)
-    y_true = K.cast(y_true, 'float32')
+    y_true = _to_tensor(y_true)
+    y_true = _cast(y_true, 'float32')
     y_pred = np.random.rand(8, 64, 64, n_channels)
-    y_pred = tf.convert_to_tensor(y_pred)
-    y_pred = K.cast(y_pred, 'float32')
+    y_pred = _to_tensor(y_pred)
+    y_pred = _cast(y_pred, 'float32')
 
     if data_format == 'channels_first':
-        y_true = K.permute_dimensions(y_true, (3, 0, 1, 2))
-        y_pred = K.permute_dimensions(y_pred, (3, 0, 1, 2))
+        y_true = _permute_dimensions(y_true, (3, 0, 1, 2))
+        y_pred = _permute_dimensions(y_pred, (3, 0, 1, 2))
 
     result = f_score(y_pred=y_pred, y_true=y_true, beta=beta, smooth=smooth, data_format=data_format, per_image=per_image) 
 
@@ -84,7 +108,7 @@ def test_f_score_all_zero_is_zero(batch_size, n_channels):
 
     img = np.zeros((batch_size, 64, 64, n_channels))
     img = img.astype(np.float32) 
-    img = tf.convert_to_tensor(img)
+    img = _to_tensor(img)
 
     res = f_score(img, img)
 
@@ -109,7 +133,7 @@ def test_f_score_beta_1_is_one(batch_size, n_channels):
 
     tar = np.random.randint(0, 1, (batch_size, 64, 64, n_channels))
     tar = tar.astype(np.float32)
-    tar = tf.convert_to_tensor(tar)
+    tar = _to_tensor(tar)
  
 
     
@@ -140,8 +164,8 @@ def test_f_score_is_zero(batch_size, n_channels, beta):
     tar = np.random.randint(0, 1, (batch_size, 64, 64, n_channels))
     tar = tar.astype(np.float32)
     pred = 1. - tar
-    tar = tf.convert_to_tensor(tar)
-    pred = tf.convert_to_tensor(pred)
+    tar = _to_tensor(tar)
+    pred = _to_tensor(pred)
     
     loss = f_score(y_pred=pred, y_true=tar, beta=beta)
 
@@ -180,15 +204,15 @@ def test_tversky_score_is_in_0_1(n_channels, alpha, smooth, data_format, per_ima
 
     beta = 1. - alpha
     y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
-    y_true = tf.convert_to_tensor(y_true)
-    y_true = K.cast(y_true, 'float32')
+    y_true = _to_tensor(y_true)
+    y_true = _cast(y_true, 'float32')
     y_pred = np.random.rand(8, 64, 64, n_channels)
-    y_pred = tf.convert_to_tensor(y_pred)
-    y_pred = K.cast(y_pred, 'float32')
+    y_pred = _to_tensor(y_pred)
+    y_pred = _cast(y_pred, 'float32')
 
     if data_format == 'channels_first':
-        y_true = K.permute_dimensions(y_true, (3, 0, 1, 2))
-        y_pred = K.permute_dimensions(y_pred, (3, 0, 1, 2))
+        y_true = _permute_dimensions(y_true, (3, 0, 1, 2))
+        y_pred = _permute_dimensions(y_pred, (3, 0, 1, 2))
 
     result = tversky_score(y_pred=y_pred, y_true=y_true, alpha=alpha, beta=beta, smooth=smooth, data_format=data_format, per_image=per_image) 
 
@@ -217,7 +241,7 @@ def test_tversky_score_all_zero_is_zero(batch_size, n_channels, alpha):
     beta = 1. - alpha
     img = np.zeros((batch_size, 64, 64, n_channels))
     img = img.astype(np.float32) 
-    img = tf.convert_to_tensor(img)
+    img = _to_tensor(img)
 
     res = tversky_score(y_pred=img, y_true=img, alpha=alpha, beta=beta)
 
@@ -249,15 +273,15 @@ def test_tversky_score_is_f_score_alpha_beta_05(n_channels, smooth, data_format,
     '''
 
     y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
-    y_true = tf.convert_to_tensor(y_true)
-    y_true = K.cast(y_true, 'float32')
+    y_true = _to_tensor(y_true)
+    y_true = _cast(y_true, 'float32')
     y_pred = np.random.rand(8, 64, 64, n_channels)
-    y_pred = tf.convert_to_tensor(y_pred)
-    y_pred = K.cast(y_pred, 'float32')
+    y_pred = _to_tensor(y_pred)
+    y_pred = _cast(y_pred, 'float32')
 
     if data_format == 'channels_first':
-        y_true = K.permute_dimensions(y_true, (3, 0, 1, 2))
-        y_pred = K.permute_dimensions(y_pred, (3, 0, 1, 2))
+        y_true = _permute_dimensions(y_true, (3, 0, 1, 2))
+        y_pred = _permute_dimensions(y_pred, (3, 0, 1, 2))
 
     dice = f_score(y_pred=y_pred, y_true=y_true, beta=1., smooth=smooth, data_format=data_format, per_image=per_image)
     result = tversky_score(y_pred=y_pred, y_true=y_true, alpha=.5, beta=.5, smooth=smooth, data_format=data_format, per_image=per_image) 
