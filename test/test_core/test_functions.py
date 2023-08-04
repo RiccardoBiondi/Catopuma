@@ -8,10 +8,9 @@ from hypothesis import given, settings, assume
 import hypothesis.strategies as st
 
 import numpy as np
-#import tensorflow.keras.backend as K
 import catopuma
-# import functions to test
 
+# import functions to test
 from catopuma.core.functions import _gather_channels
 from catopuma.core.functions import get_reduce_axes
 from catopuma.core.functions import gather_channels

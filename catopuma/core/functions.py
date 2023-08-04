@@ -14,8 +14,9 @@ from typing import Optional, Tuple, List, Dict
 from enum import Enum
 
 import catopuma
+# TODO Remove this direct framework dependency
 import tensorflow as tf
-from catopuma.core.framework import _FRAMEWORK_BACKEND as K
+from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']

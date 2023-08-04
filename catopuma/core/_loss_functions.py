@@ -7,9 +7,8 @@ and return a floating point value, corresponding to the metric value.
 """
 
 import numpy as np
-import tensorflow as tf
 import catopuma
-from catopuma.core.framework import _FRAMEWORK_BACKEND as K
+from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
 from typing import Optional, List, Tuple, Dict, NoReturn, Union
 
 from catopuma.core.functions import get_reduce_axes, average, gather_channels

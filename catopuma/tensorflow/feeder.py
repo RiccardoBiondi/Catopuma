@@ -1,21 +1,18 @@
 '''
 '''
-
-import os
 import numpy as np
 import tensorflow as tf
 from typing import List, Tuple, Optional, NoReturn
 
 import catopuma
-
-# This is the tensorflow interface, so the kbackend is automatically setted to tensorflow
-catopuma.set_framework('keras')
-
 from catopuma.uploader import SimpleITKUploader
 from catopuma.core.base import UploaderBase, PreProcessingBase, DataAgumentationBase
 
+
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
+__all__ = ['ImageFeederOnTheFly']
+
 
 class ImageFeederOnTheFly(tf.keras.utils.Sequence):
     '''
@@ -26,7 +23,6 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
     before presenting the batch to the Model.
     It also allows to specify different readers for different kind of images, and for different 
     reading modalities.
-
     Parameters
     ----------
     img_path: list[str]
@@ -55,15 +51,15 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
                  uploader: UploaderBase = SimpleITKUploader(), 
                  preprocessing: Optional[PreProcessingBase] = None,
                  augmentation_strategy: Optional[DataAgumentationBase] = None) -> None:
-    
+
         # start the initialization of the feeder
         self.img_paths = np.asarray(img_paths)
         self.tar_paths = np.asarray(target_paths)
         self.batch_size = batch_size
-    
+
         # check the input data consistency
         _ = self._checkConsistency()
-        
+
         # if pass the check fase, finish the initalization 
         self.uploader = uploader
         self.shuffle = shuffle
@@ -72,6 +68,7 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
 
         # define the indexes for the path access
         self.indexes = np.arange(0, len(img_paths), 1)
+
         # and thes shuffle if specified
         self.on_epoch_end()
 
@@ -83,9 +80,9 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
 
         If one of those requirements is not met, it will raise a value error.
         '''
+
         if len(self.img_paths) != len(self.tar_paths):
             raise ValueError(f'len of image paths must be the same of the targets: {len(self.img_paths)} != {len(self.tar_paths)}')
-        
         if len(self.img_paths) < self.batch_size:
             raise ValueError(f'len of imagese must be at least equal to the batch size: {len(self.img_paths)} < {self.batch_size}')
 
@@ -99,7 +96,8 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
         ------
         len: int
             number of full batches
-        '''  
+        '''
+
         return len(self.indexes) // self.batch_size
 
     def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -123,7 +121,6 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
 
         # load the image and the labels
         X, y = list(zip(*[self.uploader(img, tar) for img, tar in zip(self.img_paths[idxs], self.tar_paths[idxs])]))
-
         X = np.asarray(X)
         y = np.asarray(y)
 
@@ -135,13 +132,13 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
         if self.preprocessing is not None:
             X, y = self.preprocessing(X, y)
 
-        #return X, y
         return tf.convert_to_tensor(X, dtype='float'), tf.convert_to_tensor(y, dtype='float')
+
     def on_epoch_end(self):
         '''
         Function called at the end of each epoch.
         If self.shuffle is true, it will shuffle the images.
         '''
+
         if self.shuffle is True:
             np.random.shuffle(self.indexes)
-

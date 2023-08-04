@@ -1,7 +1,10 @@
 '''
 Testing module to ensure that the loss classes works as expected.
 Notice that here it is nottested the computation result since it is verified in  ./test/test_core/test_loss_functions.py testing module.
-Here is tested the correct class behaviour
+Here is tested the correct class behaviour.
+
+This module test only the loss properties that are not framework dependent.
+The framework dependent properties are tested in ./test/test_core/test_score_functions.py togheter with the computation result.
 '''
 
 
@@ -11,9 +14,8 @@ from hypothesis import given, settings
 
 import numpy as np
 import catopuma
-import tensorflow as tf
 # import the class to test
-from catopuma.losses import DiceLoss
+from catopuma import losses
 
 
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'),
@@ -37,7 +39,7 @@ def test_dice_loss_default_init():
         - all arguments are to their default values
     '''
 
-    loss = DiceLoss()
+    loss = losses.DiceLoss()
 
     assert loss.name == 'DiceLoss'
     assert np.isclose(loss.smooth, 1e-5) 
@@ -68,7 +70,7 @@ def test_dice_loss_init(loss_name, data_format, per_image, n_channels, indexes, 
 
     weigths = np.random.rand(n_channels)
 
-    loss = DiceLoss(name=loss_name, data_format=data_format, per_image=per_image, class_indexes=indexes, class_weights=weigths, smooth=smooth)
+    loss = losses.DiceLoss(name=loss_name, data_format=data_format, per_image=per_image, class_indexes=indexes, class_weights=weigths, smooth=smooth)
     
 
     assert loss.per_image is per_image
@@ -77,61 +79,3 @@ def test_dice_loss_init(loss_name, data_format, per_image, n_channels, indexes, 
     assert loss.class_indexes == indexes
     assert np.all(np.isclose(loss.class_weights, weigths))
     assert np.isclose(loss.smooth, smooth)
-
-
-
-@given(st.integers(1, 16), st.integers(1, 5))
-@settings(max_examples=10, deadline=None)
-def test_dice_loss_is_zero(batch_size, n_channels):
-    '''
-    Test the loss is close to zero when two equal images are passed as 
-    input and target
-
-    Given:
-        - target batch size
-        - target number of channels
-    Then:
-        - generate random image
-        - init the DiceLoss 
-        - call the loss with target equal to prediction
-    Assert:
-        - resulting loss is close to zero    
-    '''
-
-    tar = np.random.randint(0, 1, (batch_size, 64, 64, n_channels))
-    tar = tar.astype(np.float32)
-    tar = tf.convert_to_tensor(tar)
-    
-    loss = DiceLoss()
-
-    assert np.isclose(0., loss(tar, tar))
-
-
-@given(st.integers(1, 16), st.integers(1, 5))
-@settings(max_examples=10, deadline=None)
-def test_dice_loss_is_one(batch_size, n_channels):
-    '''
-    Test the loss is close to one when two complitely different images are provides 
-    as prediction and target.
-
-    Given:
-        - target batch size
-        - target number of channels
-    Then:
-        - generate random image
-        - create the complete different image
-        - init the DiceLoss 
-        - call the loss with target different to prediction
-    Assert:
-        - resulting loss is close to one    
-    ''' 
-
-    tar = np.random.randint(0, 1, (batch_size, 64, 64, n_channels))
-    tar = tar.astype(np.float32)
-    pred = 1. - tar
-    tar = tf.convert_to_tensor(tar)
-    pred = tf.convert_to_tensor(pred)
-    
-    loss = DiceLoss()
-
-    assert np.isclose(1., loss(tar, pred))

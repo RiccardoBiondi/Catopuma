@@ -1,12 +1,10 @@
-#from catopuma.preprocessing import *
-#from catopuma.tensorflow.feeder import *
-#from catopuma.losses import *
-#from catopuma.uploader import *
+'''
+'''
 import os
 import sys
 import importlib
 from catopuma.__version__ import __version__
-import catopuma.core.framework as fw
+import catopuma.core.__framework as fw
 from typing import Iterable
 
 __author__ = ['Riccardo Biondi']
@@ -14,14 +12,8 @@ __email__ = ['riccardo.biondi7@unibo.it']
 
 
 
-# now start the injection of the backend, to support both torch and keras (both keraas and tf.keras) implementations
-
-def set_available_frameworks():
-    '''
-    Retrieve which of the supported frameworks are available in the system.
-
-    '''
-    fw._AVAILABLE_FRAMEWORKS = [k for  k, v in fw._FRAMEWORK_LUT.items() if importlib.find_loader(v) is not None]
+# Define some usefull functions to get the availble frameworks, get the current framework 
+# and set the current framework
 
 def available_frameworks() -> Iterable[str]:
     '''
@@ -34,7 +26,8 @@ def available_frameworks() -> Iterable[str]:
     '''
     
     return fw._AVAILABLE_FRAMEWORKS
- 
+
+
 def framework() -> str:
     '''
     Return the current framework
@@ -83,6 +76,24 @@ def set_framework(name: str) -> None:
         fw._FRAMEWORK = torch
 
 # now set the frameworks
-set_available_frameworks()
+fw._AVAILABLE_FRAMEWORKS = fw._retrieve_available_frameworks()
+# TODO fid a better way to manage the default framework
 _framework = os.environ.get('CATOPUMA_FRAMEWORK', fw._DEFAULT_FRAMEWORK_NAME)
 set_framework(_framework)
+
+
+
+# now import the catopuma modules
+
+# import the catopuma agnostic libraries
+
+
+from catopuma import preprocessing
+from catopuma import uploader
+
+if framework() in [fw._TF_KERAS_FRAMEWORK_NAME, fw._KERAS_FRAMEWORK_NAME]:
+    from .tensorflow import feeder
+    from .tensorflow import losses
+
+
+#__all__ = ['preprocessing', 'uploader', 'feeder', 'framework', '__version__']

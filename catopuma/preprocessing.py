@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from typing import Union, Callable, Dict, Tuple
 
-from catopuma.core.abstraction import PreProcessingBase
+from catopuma.core.base import PreProcessingBase
 
 from catopuma.core.functions import get_reduce_axes
 from catopuma.core._preprocessing_functions import standard_scale
