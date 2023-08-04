@@ -129,8 +129,8 @@ def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str =
     return [_gather_channels(x, indexes=indexes, data_format=data_format) for x in xs]
 
 
-def average(x: np.ndarray, per_image: bool = False, per_channel=False,
-            class_weights: Optional[np.array] = None, data_format: str = 'channels_last') -> float:
+def average(x: np.ndarray, per_image: bool = False, per_channel: bool = False,
+            class_weights: Optional[np.array] = None) -> float:
     '''
     Average the tensor to obtain a single value. The averaging is done according to the given specifications.
     Moreover, if the class_weights are provided, the tensor is weighted before averaging.
@@ -151,9 +151,10 @@ def average(x: np.ndarray, per_image: bool = False, per_channel=False,
 
     Return
     ------
-    
+
 
     '''
+
     if per_image:
         x = K.mean(x, axis=0)
 
@@ -161,5 +162,6 @@ def average(x: np.ndarray, per_image: bool = False, per_channel=False,
         x = x * class_weights
     
     if per_channel:
-        x = K.mean(x, axis=BASE_DATA_FORMAT_GATHING_AXIS[data_format]) 
+        x = K.mean(x, axis=0)
+     
     return K.mean(x)

@@ -76,7 +76,7 @@ class DiceLoss(BaseLoss):
 
         return 1. - f_score(y_true=y_true, y_pred=y_pred, beta=1., smooth=self.smooth,
                            indexes=self.class_indexes, class_weights=self.class_weights,
-                           data_format=self.data_format, per_image=self.per_image)
+                           data_format=self.data_format, per_image=self.per_image, per_channel=self.per_channel)
     
 
 class TverskyLoss(BaseLoss):
@@ -144,5 +144,5 @@ class TverskyLoss(BaseLoss):
 
         return 1. - tversky_score(y_true=y_true, y_pred=y_pred, alpha=self.alpha, beta=self.beta, smooth=self.smooth,
                            indexes=self.class_indexes, class_weights=self.class_weights,
-                           data_format=self.data_format, per_image=self.per_image)
+                           data_format=self.data_format, per_image=self.per_image, per_channel=self.per_channel)
     

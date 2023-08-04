@@ -17,7 +17,9 @@ from catopuma.core.functions import get_reduce_axes, average, gather_channels
 # TODO: here all the functions works with the tensorflow.keras backend. This could lead to some incompatibilities with the torch API.
 # son find a way to solve this and to not assume the backwend
 
-def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weights: Union[List[float], float] = 1.,  indexes: List[int] = None, per_image: bool = False, data_format: str = 'channels_last'):
+def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
+            class_weights: Union[List[float], float] = 1.,  indexes: List[int] = None,
+            per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last'):
     '''
     Function to compute the f1 score between y_true and y_pred using the keras backend.
     The computation includes also a smoothing to avoid Nan's and Inf's.
@@ -55,8 +57,11 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weight
         is repeated.
         As default all the channels are considered in the order in which they are in y_true and y_pred.
     
-    per_image bool (default false)
-        If true, the loss is calculated for each image and then averaged.
+    per_image: bool (default false)
+        If true, the score is calculated for each image and then averaged.
+    
+    per_channel: (default false)
+        If Truem the score is calculated for each channel and then averaged
 
     data_format: str (default 'channels_last')
         specitfy the data format of the input samples.
@@ -73,7 +78,7 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weight
     pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
 
     # Get the reduction axis to compute the final metric value
-    axes = get_reduce_axes(per_image=per_image, data_format=data_format)
+    axes = get_reduce_axes(tensor_dims=len(y_true.shape), per_image=per_image, per_channel=per_channel, data_format=data_format)
 
     # calculate score
     tp = K.sum(gt * pr, axis=axes)
@@ -82,13 +87,14 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5, class_weight
 
     score = ((1 + beta ** 2) * tp + smooth) \
             / ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + smooth)
-    score = average(score, per_image, np.asarray(class_weights))
+    score = average(score, per_image=per_image, per_channel=per_channel, class_weights=np.asarray(class_weights))
 
     return score
 
 
-def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: float = 1e-5, class_weights: Union[List[float], float] = 1., 
-                  indexes: List[int] = None, per_image: bool = False, data_format: str = 'channels_last'):
+def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: float = 1e-5,
+                  class_weights: Union[List[float], float] = 1., indexes: List[int] = None,
+                  per_channel: bool = False, per_image: bool = False, data_format: str = 'channels_last'):
     '''
     Function to compute the twersky metric . It will be a floating point value in [0., 1.].
     This function allows to chose the conribution of precision and recall in loss computation, 
@@ -145,8 +151,7 @@ def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: f
     y_true = K.cast(y_true, 'float32')
     y_pred = K.cast(y_pred, 'float32')
 
-    # clip the values to avoid NaN's and Inf's
-    axes = get_reduce_axes(per_image=per_image, data_format=data_format)
+    axes = get_reduce_axes(tensor_dims=len(y_true.shape), per_channel=per_channel, per_image=per_image, data_format=data_format)
 
     # calculate score
     tp = K.sum(gt * pr, axis=axes)
@@ -155,6 +160,6 @@ def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: f
 
     score = (tp + smooth) / (tp + alpha * fp + beta * fn + smooth)
 
-    score = average(score, per_image, np.asarray(class_weights))
+    score = average(score, per_image=per_image, per_channel=per_channel, class_weights=np.asarray(class_weights))
 
     return score
