@@ -16,6 +16,8 @@ from enum import Enum
 import catopuma
 # TODO Remove this direct framework dependency
 import tensorflow as tf
+from catopuma.core.__framework import _FRAMEWORK_NAME
+from catopuma.core.__framework import _FRAMEWORK_BASE as F
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
 
 __author__ = ['Riccardo Biondi']
@@ -36,6 +38,17 @@ BASE_DATA_FORMAT_GATHING_AXIS: Dict[str, List[int]] = {
                                                         'channels_first': 1,
                                                         'channels_last': -1
                                                         }
+
+def __gate_by_framework(x, indexes, axis):
+    '''
+    '''
+
+    if _FRAMEWORK_NAME == 'torch':
+
+        return F.gather(x, axis, indexes)
+    else:
+        return F.gather(x, indexes, axis=axis)
+
 
 def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'channel_last'):
     # TODO substitute the dataformat string with an Enum
@@ -70,7 +83,7 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
         raise ValueError(f'Data format: {data_format} is not recognised as valid specification. Allowed dataformat are {BASE_DATA_FORMAT_GATHING_AXIS.keys()}')
     
     # TODO here it is dependend to tensorflow, I have to make it compatible also to pytorch
-    x = tf.gather(x, indexes, axis=BASE_DATA_FORMAT_GATHING_AXIS[data_format])        
+    x = __gate_by_framework(x, indexes, axis=BASE_DATA_FORMAT_GATHING_AXIS[data_format])        
 
     return x   
 

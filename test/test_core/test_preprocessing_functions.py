@@ -237,7 +237,7 @@ def test_standard_scale_mean_std_per_channel(batch_size: int, channels: int):
 
 
 @given(st.integers(2, 8), st.integers(2, 4))
-def test_rescale_min_max_per_image_pre_channel(batch_size: int, channels: int):
+def test_rescale_min_max_per_image_per_channel(batch_size: int, channels: int):
     '''
     test that the image resulting form the standard scaler (channel-wise and image-wise)
     havemean close to 0. and standard deviation close to 1.

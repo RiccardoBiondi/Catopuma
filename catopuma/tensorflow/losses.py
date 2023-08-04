@@ -12,8 +12,8 @@ from typing import Union, Optional, List
 
 import catopuma
 from catopuma.core.base_losses import BaseLoss
-from catopuma.core._loss_functions import f_score
-from catopuma.core._loss_functions import tversky_score
+from catopuma.core._score_functions import f_score
+from catopuma.core._score_functions import tversky_score
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']

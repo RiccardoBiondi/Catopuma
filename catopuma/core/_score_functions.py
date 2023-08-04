@@ -11,7 +11,7 @@ import catopuma
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
 from typing import Optional, List, Tuple, Dict, NoReturn, Union
 
-from catopuma.core.functions import get_reduce_axes, average, gather_channels
+from catopuma.core._base_functions import get_reduce_axes, average, gather_channels
 
 # TODO: here all the functions works with the tensorflow.keras backend. This could lead to some incompatibilities with the torch API.
 # son find a way to solve this and to not assume the backwend
@@ -162,3 +162,15 @@ def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: f
     score = average(score, per_image=per_image, per_channel=per_channel, class_weights=np.asarray(class_weights))
 
     return score
+
+# future score to implement
+
+def mse():
+    pass
+
+
+def mae():
+    pass
+
+def binary_cross_entropy():
+    pass

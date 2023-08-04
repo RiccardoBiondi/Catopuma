@@ -11,10 +11,10 @@ import numpy as np
 import catopuma
 
 # import functions to test
-from catopuma.core.functions import _gather_channels
-from catopuma.core.functions import get_reduce_axes
-from catopuma.core.functions import gather_channels
-from catopuma.core.functions import average
+from catopuma.core._base_functions import _gather_channels
+from catopuma.core._base_functions import get_reduce_axes
+from catopuma.core._base_functions import gather_channels
+from catopuma.core._base_functions import average
 
 
 __author__ = ['Riccardo Biondi']

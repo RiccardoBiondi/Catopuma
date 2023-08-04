@@ -10,7 +10,7 @@ from typing import Union, Callable, Dict, Tuple
 
 from catopuma.core.base import PreProcessingBase
 
-from catopuma.core.functions import get_reduce_axes
+from catopuma.core._base_functions import get_reduce_axes
 from catopuma.core._preprocessing_functions import standard_scale
 from catopuma.core._preprocessing_functions import rescale
 from catopuma.core._preprocessing_functions import identity

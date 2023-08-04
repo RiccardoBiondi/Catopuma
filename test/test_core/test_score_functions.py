@@ -16,8 +16,8 @@ import tensorflow as tf
 
 import catopuma
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
-from catopuma.core._loss_functions import f_score
-from catopuma.core._loss_functions import tversky_score
+from catopuma.core._score_functions import f_score
+from catopuma.core._score_functions import tversky_score
 
 ALLOWED_DATA_FORMATS =   ('channels_first', 'channels_last')
 
