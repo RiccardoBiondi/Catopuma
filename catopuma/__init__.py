@@ -60,20 +60,25 @@ def set_framework(name: str) -> None:
     if fw._FRAMEWORK_NAME == fw._KERAS_FRAMEWORK_NAME:
 
         import keras
+        import tensorflow as tf
         fw._FRAMEWORK_BACKEND = keras.backend
         fw._FRAMEWORK = keras
+        fw._FRAMEWORK_BASE = tf
     
     elif fw._FRAMEWORK_NAME == fw._TF_KERAS_FRAMEWORK_NAME:
 
+        import tensorflow as tf
         import tensorflow.keras as keras
         fw._FRAMEWORK_BACKEND = keras.backend
         fw._FRAMEWORK = keras
+        fw._FRAMEWORK_BASE = tf
 
     elif fw._FRAMEWORK_NAME == fw._TORCH_FRAMEWORK_NAME:
 
         import torch
         fw._FRAMEWORK_BACKEND = torch
         fw._FRAMEWORK = torch
+        fw._FRAMEWORK_BASE = torch
 
 # now set the frameworks
 fw._AVAILABLE_FRAMEWORKS = fw._retrieve_available_frameworks()
