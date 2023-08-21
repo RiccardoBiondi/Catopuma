@@ -99,6 +99,9 @@ from catopuma import uploader
 if framework() in [fw._TF_KERAS_FRAMEWORK_NAME, fw._KERAS_FRAMEWORK_NAME]:
     from .tensorflow import feeder
     from .tensorflow import losses
+else:
+    from .torch import feeder
+    from .torch import losses
 
 
 #__all__ = ['preprocessing', 'uploader', 'feeder', 'framework', '__version__']

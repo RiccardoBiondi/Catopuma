@@ -4,7 +4,7 @@ import numpy as np
 from typing import Optional, List
 
 
-def standard_scale(image: np.ndarray, axis: Optional[List[int]] = None) -> np.ndarray:
+def standard_scaler(image: np.ndarray, axis: Optional[List[int]] = None) -> np.ndarray:
 
     '''
     Stardandize the image according to mean and standard deviation.
@@ -32,11 +32,39 @@ def standard_scale(image: np.ndarray, axis: Optional[List[int]] = None) -> np.nd
     return norm * (image - mu)
 
 
-def robust_scale(image: np.ndarray, roi: Optional[np.ndarray] = None, axis: Optional[List[int]] = None) -> np.ndarray:
-    pass
+def robust_scaler(image: np.ndarray, roi: Optional[np.ndarray] = None, axis: Optional[List[int]] = None) -> np.ndarray:
+    '''
+    Rescale the image intensities according to median and interquartile range.
+    If a roi is specified, the normalization is done computing the median and the
+    interquartile range inside the provided roi.
+
+    Parameters
+    ----------
+    image: np.ndarray
+        array to rescale
+    roi: np.ndarray (default None)
+        region of interest where compute the median and the interquartile range. 
+        Must be binary and have the same shape of the image.
+    axis: List[int] (default None)
+        reduction axis where compute the median and the interquartile range
+    
+    Return
+    ------
+
+    rescaled: np.ndarray
+        image standardized according to median and interquartile range.
+        The rescaled image have the same shape as the input image.
+    '''
+
+    median = np.median(image, axis=axis, keepdims=True)
+    iqr = np.subtract(*np.percentile(image, [75, 25], axis=axis, keepdims=True))
+    scale_factor = 1. / iqr
+    rescaled = (image - median) * scale_factor
+    
+    return rescaled
 
 
-def rescale(image: np.ndarray, axis: Optional[List[int]] = None) -> np.ndarray:
+def min_max_scaler(image: np.ndarray, axis: Optional[List[int]] = None) -> np.ndarray:
     '''
     Rescale the image intensities in [0., 1.]
 

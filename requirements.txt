@@ -1,6 +1,4 @@
 numpy
-keras
-tensorflow
 SimpleITK
 
 pytest

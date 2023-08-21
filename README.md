@@ -1,6 +1,6 @@
-| **Authors**  | **Project** |  **Build Status** | **License** | **Docs** |
-|:------------:|:-----------:|:-----------------:|:-----------:|:--------:|
-| [**R. Biondi**](https://github.com/RiccardoBiondi) | **CATOPUMA** | **Windows** : [![Windows CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Windows%20CI/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/windows_ci.yaml)    <br/> **Ubuntu** : [![Ubuntu CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Ubuntu%20CI/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/ubuntu_ci.yml)  <br/>   | [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/RiccardoBiondi/Catopuma/blob/master/LICENSE.md) | [![Docs CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Docs%20CI/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/docs_ci.yaml) <br/> [![Documentation Status](https://readthedocs.org/projects/catopuma/badge/?version=latest)](https://catopuma.readthedocs.io/en/latest/?badge=latest)|
+| **Authors**  | **Project** |  **Tensorflow** | **PyTorch** |**License** | **Docs** |
+|:------------:|:-----------:|:---------------:|:-----------:|:----------:|:--------:|
+| [**R. Biondi**](https://github.com/RiccardoBiondi) | **CATOPUMA** | **Windows** : [![Windows CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Windows%20CI%20TF/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/windows_ci_tf.yml)    <br/> **Ubuntu** : [![Ubuntu CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Ubuntu%20CI%20TF/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/ubuntu_ci_tf.yml)  <br/>   | **Windows** : [![Windows CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Windows%20CI%20TC/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/windows_ci_tc.yml)    <br/> **Ubuntu** : [![Ubuntu CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Ubuntu%20CI%20TC/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/ubuntu_ci_tc.yml)  <br/> | [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/RiccardoBiondi/Catopuma/blob/master/LICENSE.md) | [![Docs CI](https://github.com/RiccardoBiondi/Catopuma/workflows/Docs%20CI/badge.svg)](https://github.com/RiccardoBiondi/Catopuma/actions/workflows/docs_ci.yaml) <br/> [![Documentation Status](https://readthedocs.org/projects/catopuma/badge/?version=latest)](https://catopuma.readthedocs.io/en/latest/?badge=latest)|
 
 [![GitHub pull-requests](https://img.shields.io/github/issues-pr/RiccardoBiondi/Catopuma.svg?style=plastic)](https://github.com/RiccardoBiondi/Catopuma/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/RiccardoBiondi/Catopuma.svg?style=plastic)](https://github.com/RiccardoBiondi/Catopuma/issues)
@@ -9,17 +9,20 @@
 [![GitHub watchers](https://img.shields.io/github/watchers/RiccardoBiondi/Catopuma.svg?label=Watch&style=social)](https://github.com/RiccardoBiondi/Catopuma/watchers)
 [![GitHub forks](https://img.shields.io/github/watchers/RiccardoBiondi/Catopuma.svg?label=Forks&style=social)](https://github.com/RiccardoBiondi/Catopuma/forks)
 
-# Customizable Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment
+# Customizable Advanced Tensorflow(Torch) Objects for Preoproces, Upload, Model and Augment
  
 
-- [Customizable Advanced Tensorflow Objects for Preoproces, Upload, Model and Augment](#customizable-advanced-tensorflow-objects-for-preoproces-upload-model-and-augment)
+- [Customizable Advanced Tensorflow(Torch) Objects for Preoproces, Upload, Model and Augment](#customizable-advanced-tensorflowtorch-objects-for-preoproces-upload-model-and-augment)
   - [Overview](#overview)
   - [Installation](#installation)
     - [Install with pip](#install-with-pip)
     - [Install with conda](#install-with-conda)
     - [Install from source](#install-from-source)
+    - [Select Default Framework](#select-default-framework)
     - [Testing](#testing)
   - [Getting Started](#getting-started)
+    - [Basic Usage](#basic-usage)
+    - [Chenge Framework](#chenge-framework)
   - [License](#license)
   - [Contribute](#contribute)
     - [How to Commit](#how-to-commit)
@@ -30,7 +33,8 @@
 
 ## Overview
 
-CATOPUMA is a Python package that offers customizable advanced TensorFlow objects for tasks such as preprocessing, uploading, modeling, and augmenting. It includes several classes that facilitate the loading, augmentation, and preprocessing of images for deep learning models.
+CATOPUMA is a Python package that offers customizable advanced TensorFlow and Torch objects for tasks such as preprocessing, uploading, modeling, and augmenting. It includes several classes that facilitate the loading, augmentation, and preprocessing of images for deep learning models. The vast majprity of these objects are agnostic and can worok both for tensorflow, keras and pytorch.
+
 
 The main functionalities of CATOPUMA are as follows:
 
@@ -53,6 +57,10 @@ CATOPUMA offers different installation way.
 The installation process is the same for each Operative System.
 
 Supported python version: ![Python version](https://img.shields.io/badge/python-3.8|3.9|3.10|3.11-blue.svg).
+
+CATOPUMA work for both tensorflow.keras and pytorch but does not autoamatically install them.
+Before install this project plaese make sure that at least one of them is installed.
+
 
 ### Install with pip
 
@@ -82,6 +90,24 @@ conda installer is no yet availabel
   python setup.py develop --user
   ```
 
+
+### Select Default Framework
+
+Once you have installed CATOPUMA, you can specify which framework it should be use.
+If only one of tensorflow.keras and pytorch is installed, then it is automatically stted as default.
+If both are installed, you can specify which one use as deafult by setting the environment variable `CATOPUMA_FRAMEWORK` to `torch` or `tf.keras`
+  
+- on **Ubuntu**:
+```console 
+export CATOPUMA_FRAMEWORK=your_framework
+```
+
+- on **Windows**:
+
+```console
+$env:CATOPUMA_FRAMEWORK = 'your_framwork'
+```
+
 ### Testing
 
 We have provide a test routine in [test](./test) directory. This routine use:
@@ -100,6 +126,13 @@ You can run the full set of test with:
 ## Getting Started
 
 Once you have installed the 
+
+### Basic Usage
+
+### Chenge Framework
+
+The default framework is keras (if installed on your system or environment), however it is possible to work also with pytorch or tensorflow.keras.
+Moreover, it is possible
 
 ## License
 

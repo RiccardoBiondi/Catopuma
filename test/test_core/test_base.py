@@ -30,7 +30,7 @@ class MockLoss(BaseLoss):
     '''
     Simple mocking class to concretize and test the BaseLoss functionality.
     It took an extra argument "const" which allows to control the 
-    number returned by the __call__ method and therefore test the aritmtic 
+    number returned by the __call__ (or forwad) method and therefore test the aritmetic 
     operations between the losses 
     '''
 
@@ -42,6 +42,9 @@ class MockLoss(BaseLoss):
     
     def __call__(self, y_true, y_pred) -> float:
 
+        return self.const
+    
+    def forward(self, y_true, y_pred) -> float:
         return self.const
     
 

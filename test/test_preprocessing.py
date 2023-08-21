@@ -6,11 +6,13 @@ import numpy as np
 
 from typing import Tuple, Dict, Callable
 
-from catopuma.core._preprocessing_functions import standard_scale
-from catopuma.core._preprocessing_functions import rescale
+from catopuma.core._preprocessing_functions import standard_scaler
+from catopuma.core._preprocessing_functions import robust_scaler
+from catopuma.core._preprocessing_functions import min_max_scaler
 from catopuma.core._preprocessing_functions import identity
 
 from catopuma.preprocessing import PreProcessing
+from catopuma.preprocessing import SCALER_LUT
 
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'),
                                  min_codepoint=65, max_codepoint=90)
@@ -19,13 +21,7 @@ text_strategy = st.text(alphabet=legitimate_chars, min_size=1,
                         max_size=15)
 
 ALLOWED_DATA_FORMATS: Tuple[str] = ('channels_last', 'channels_first')
-STANDARDIZERS: Tuple[str] = ('identity', 'standard_scale', 'rescale')
-
-SCALER_LUT: Dict[str, Callable] = {
-                'standard_scale': standard_scale,
-                'rescale': rescale,
-                'identity': identity
-                }
+STANDARDIZERS: Tuple[str] = tuple(SCALER_LUT.keys())
 
 def test_pre_processing_dafault_init():
     '''
