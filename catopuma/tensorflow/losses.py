@@ -78,6 +78,12 @@ class DiceLoss(BaseLoss):
                            indexes=self.class_indexes, class_weights=self.class_weights,
                            data_format=self.data_format, per_image=self.per_image, per_channel=self.per_channel)
     
+    def forward(self, y_true, y_pred):
+        '''
+        Convinience method implemented to mantain the compatibility with the multiframework behaviour of
+        catopuma
+        '''
+        pass
 
 class TverskyLoss(BaseLoss):
     '''
@@ -145,4 +151,13 @@ class TverskyLoss(BaseLoss):
         return 1. - tversky_score(y_true=y_true, y_pred=y_pred, alpha=self.alpha, beta=self.beta, smooth=self.smooth,
                            indexes=self.class_indexes, class_weights=self.class_weights,
                            data_format=self.data_format, per_image=self.per_image, per_channel=self.per_channel)
+    
+
+    def forward(self, y_true, y_pred):
+        '''
+        Convinience method implemented to mantain the compatibility with the multiframework behaviour of
+        catopuma
+        '''
+        pass
+
     
