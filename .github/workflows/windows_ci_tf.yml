@@ -40,9 +40,10 @@ jobs:
     - name: Install Catopuma
       run: |
         python setup.py develop --user
-      env:
-        CATOPUMA_FRAMEWORK: tf.keras
+
 
     - name: Test with pytest
       run: |
         python -m pytest
+      env:
+        CATOPUMA_FRAMEWORK: tf.keras

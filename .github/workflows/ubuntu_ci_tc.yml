@@ -38,9 +38,10 @@ jobs:
     - name: Install Catopuma
       run: |
         python setup.py develop --user
-      env:
-        CATOPUMA_FRAMEWORK: torch
+
 
     - name: Test with pytest
       run: |
             python -m pytest
+      env:
+        CATOPUMA_FRAMEWORK: torch
