@@ -14,8 +14,6 @@ from typing import Optional, Tuple, List, Dict
 from enum import Enum
 
 import catopuma
-# TODO Remove this direct framework dependency
-import tensorflow as tf
 from catopuma.core.__framework import _FRAMEWORK_NAME
 from catopuma.core.__framework import _FRAMEWORK_BASE as F
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K

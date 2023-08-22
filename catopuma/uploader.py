@@ -7,7 +7,6 @@ import os
 from typing import Tuple, NoReturn, Dict
 import numpy as np
 import SimpleITK as sitk
-import tensorflow as tf
 
 from catopuma.core.base import UploaderBase
 

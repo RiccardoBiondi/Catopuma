@@ -4,7 +4,6 @@ preprocessing of the input images
 '''
 
 import numpy as np
-import tensorflow as tf
 
 from typing import Union, Callable, Dict, Tuple
 
@@ -81,7 +80,7 @@ class PreProcessing(PreProcessingBase):
         self.data_format = data_fromat
         self.target_label = target_label
 
-    def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple[tf.Tensor, tf.Tensor]:
+    def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple:
         '''
         Perform the specified preprocessing on the batch
         Parameters

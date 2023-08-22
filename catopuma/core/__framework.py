@@ -35,10 +35,9 @@ Functions
     _retrieve_available_frameworks:
         function to retrieve which framework ara availble in your system
 '''
-import sys
 from typing import Iterable, Dict
-# TODO this will be deprecated from python 3.12
-from importlib import find_loader
+from importlib import find_loader # FIXME this will be deprecated from python 3.12
+
 
 
 __author__ = ['Riccardo Biondi']
