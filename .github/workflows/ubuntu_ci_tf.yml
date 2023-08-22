@@ -38,8 +38,8 @@ jobs:
         python -m pip install keras
 
     - name: Set Framework to Test
-      run: |
-        export CATOPUMA_FRAMEWORK=keras
+      env:
+        CATOPUMA_FRAMEWORK: tf.keras
 
     - name: Install Catopuma
       run: |

@@ -36,8 +36,8 @@ jobs:
         python -m pip install torch
 
     - name: Set Framework to Test
-      run: |
-        export CATOPUMA_FRAMEWORK=torch
+      env:
+        CATOPUMA_FRAMEWORK: torch
 
     - name: Install Catopuma
       run: |
