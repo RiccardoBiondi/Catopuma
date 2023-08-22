@@ -45,7 +45,7 @@ def __gate_by_framework(x, indexes, axis):
 
     if _FRAMEWORK_NAME == 'torch':
 
-        return F.gather(x, axis, F. torch.tensor(indexes))
+        return F.index_select(x, axis, F.tensor(indexes))
     else:
         return F.gather(x, indexes, axis=axis)
 
@@ -119,6 +119,7 @@ def get_reduce_axes(tensor_dims: int = 4, per_image: bool = False, per_channel: 
 def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str = 'channels_last') -> np.ndarray:
     '''
     Gather the channels of the tensor according to the given specification.
+    In torch framework, it call the index_select function instead of the gather one.
 
     Parameters
     ----------

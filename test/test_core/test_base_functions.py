@@ -16,11 +16,23 @@ from catopuma.core._base_functions import get_reduce_axes
 from catopuma.core._base_functions import gather_channels
 from catopuma.core._base_functions import average
 
+from catopuma.core.__framework import _FRAMEWORK_NAME
+from catopuma.core.__framework import _FRAMEWORK_BASE as F
+from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
 
 __author__ = ['Riccardo Biondi']
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'), min_codepoint=65, max_codepoint=90)
 
 text_strategy = st.text(alphabet=legitimate_chars, min_size=1, max_size=15)
+
+
+# usefull functions to test the function behaviour, because this functions act on the tensors
+
+def _to_tensor(x : np.ndarray):
+    
+    if _FRAMEWORK_NAME == 'torch':
+        return F.from_numpy(x)
+    return F.convert_to_tensor(x)
 
 
 @given(text_strategy)
@@ -39,7 +51,7 @@ def test__gather_channel_raise_value_error(data_format: str) :
         value error is raised
     '''
 
-    dummy_tensor = np.zeros(shape=(1, 64, 64, 1), dtype=np.float32)
+    dummy_tensor = _to_tensor(np.zeros(shape=(1, 64, 64, 1), dtype=np.float32))
     dummy_index = (1)
 
     with pytest.raises(ValueError):
@@ -67,7 +79,7 @@ def test__gater_channel_channel_first(number_of_channels, indexes):
     
     #construct the tensor
 
-    x = np.concatenate([np.full((1, 1, 64, 64), i) for i in range(0, number_of_channels)], axis=1)
+    x = _to_tensor(np.concatenate([np.full((1, 1, 64, 64), i) for i in range(0, number_of_channels)], axis=1))
     # get only unique indexes
     indexes = tuple(set(indexes))
 
@@ -97,7 +109,7 @@ def test__gater_channel_channel_last(number_of_channels, indexes):
     '''
     #construct the tensor
 
-    x = np.concatenate([np.full((1, 64, 64, 1), i) for i in range(0, number_of_channels)], axis=-1)
+    x = _to_tensor(np.concatenate([np.full((1, 64, 64, 1), i) for i in range(0, number_of_channels)], axis=-1))
 
     # get only unique indexes
     indexes = tuple(set(indexes))
