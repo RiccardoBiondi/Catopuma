@@ -16,7 +16,7 @@ from catopuma import feeder
 @pytest.mark.skipif(fw._FRAMEWORK_NAME not in ['keras', 'tf.keras'], reason="Test only works with tf.keras and keras frameworks")
 class TestTensorflowFeeder:
         
-    def test_image_feeder_on_the_fly_default_init():
+    def test_image_feeder_on_the_fly_default_init(self):
         '''
         Check if all the dafault parameters are correctly setted
         Given:
@@ -42,7 +42,7 @@ class TestTensorflowFeeder:
 
 
     @given(st.integers(2, 32), st.booleans())
-    def test_image_feeder_on_the_fly_init(batch_size, shuffle):
+    def test_image_feeder_on_the_fly_init(self, batch_size, shuffle):
         '''
         assert that the init by specifying parameters is correct
         Given:
@@ -70,7 +70,7 @@ class TestTensorflowFeeder:
 
 
     @given(st.integers(1, 100), st.integers(1, 100))
-    def test_image_feeder_on_the_fly_raise_value_error_path_different_lenght(image_path_size, target_path_size):
+    def test_image_feeder_on_the_fly_raise_value_error_path_different_lenght(self, image_path_size, target_path_size):
         '''
         Chech that the image feeder raise value error when different lenght of
         image and target paths are provided
@@ -91,7 +91,7 @@ class TestTensorflowFeeder:
 
 
     @given(st.integers(1, 64), st.integers(1, 64))
-    def test_image_feeder_on_the_fly_images_len_lower_than_batch(path_len, batch_size):
+    def test_image_feeder_on_the_fly_images_len_lower_than_batch(self, path_len, batch_size):
         '''
         Check the image feeder raise value error when the leng of the provide image
         paths is lower than the batch size
@@ -112,7 +112,7 @@ class TestTensorflowFeeder:
 
 
     @given(st.integers(8, 100))
-    def test_image_feeder_on_the_fly_shuffle_true(path_len):
+    def test_image_feeder_on_the_fly_shuffle_true(self, path_len):
         '''
         Check that the indexes are randomly shuffled when shuffle is set to True
         Given:
@@ -134,7 +134,7 @@ class TestTensorflowFeeder:
 
 
     @given(st.integers(8, 100))
-    def test_image_feeder_on_the_fly_shuffle_false(path_len):
+    def test_image_feeder_on_the_fly_shuffle_false(self, path_len):
         '''
         Check that the indexes are not randomly shuffled when shuffle is set to False
         Given:
@@ -157,7 +157,7 @@ class TestTensorflowFeeder:
 
 
     @given(st.integers(1, 8), st.integers(1, 100))
-    def test_image_feeder_on_the_fly_len(batch_size, number_of_batches):
+    def test_image_feeder_on_the_fly_len(self, batch_size, number_of_batches):
         '''
         Check that the len of the feeder (i.e. the number of created batches) is N when 
         the path len is in range [N * batch_size, (N + 1) * batch_size[
@@ -184,7 +184,7 @@ class TestTensorflowFeeder:
 
     @given(st.integers(1, 64), st.integers(10, 1000))
     @settings(max_examples=10, deadline=None)
-    def test_each_batch_has_correct_size_and_shape(batch_size, number_of_paths):
+    def test_each_batch_has_correct_size_and_shape(self, batch_size, number_of_paths):
         '''
         Check that the returned batches has the correct size and shape
         Given:

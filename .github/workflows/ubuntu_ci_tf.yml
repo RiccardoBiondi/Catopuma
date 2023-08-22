@@ -36,12 +36,12 @@ jobs:
       run: | 
         python -m pip install tensorflow
         python -m pip install keras
-      env:
-        CATOPUMA_FRAMEWORK: tf.keras
 
     - name: Install Catopuma
       run: |
         python setup.py develop --user
+      env:
+        CATOPUMA_FRAMEWORK: tf.keras
 
     - name: Test with pytest
       run: |
