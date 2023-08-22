@@ -45,7 +45,7 @@ def __gate_by_framework(x, indexes, axis):
 
     if _FRAMEWORK_NAME == 'torch':
 
-        return F.gather(x, axis, indexes)
+        return F.gather(x, axis, F. torch.tensor(indexes))
     else:
         return F.gather(x, indexes, axis=axis)
 

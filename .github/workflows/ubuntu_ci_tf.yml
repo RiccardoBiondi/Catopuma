@@ -37,6 +37,10 @@ jobs:
         python -m pip install tensorflow
         python -m pip install keras
 
+    - name: Set Framework to Test
+      run: |
+        export CATOPUMA_FRAMEWORK=keras
+
     - name: Install Catopuma
       run: |
         python setup.py develop --user

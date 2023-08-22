@@ -12,7 +12,7 @@ from hypothesis import given, settings
 
 
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
 
 import catopuma
 from catopuma.core.__framework import _FRAMEWORK_NAME
@@ -25,6 +25,14 @@ ALLOWED_DATA_FORMATS =   ('channels_first', 'channels_last')
 
 # fisrt of all define some helpet functions to manage the tensor depending on the framework
 
+if _FRAMEWORK_NAME == 'torch':
+    import torch
+    DATA_TYPES = {'float32': torch.float32}
+else:
+    import tensorflow as tf
+    DATA_TYPES = {'float32': 'float32'}
+
+
 
 def _to_tensor(x : np.ndarray):
     
@@ -36,8 +44,8 @@ def _to_tensor(x : np.ndarray):
 def _cast(x, new_type):
 
     if _FRAMEWORK_NAME == 'torch':
-        return x.type(new_type)
-    return K.cast(x, new_type)
+        return x.type(DATA_TYPES[new_type])
+    return K.cast(x, DATA_TYPES[new_type])
 
 def _permute_dimensions(x, indexes):
 

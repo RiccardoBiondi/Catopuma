@@ -206,3 +206,16 @@ def test_each_batch_has_correct_size_and_shape(batch_size, number_of_paths):
        assert len(item) == 2
        assert item[0].shape == (batch_size, 64, 64, 1)
        assert item[1].shape == (batch_size, 64, 64, 1)
+
+
+@pytest.mark.skipif(fw._FRAMEWORK_NAME != 'torch', reason="Test only works with torch frameworks")
+class TestTorchFeeder:
+      
+      def test_placeholder_torch(self):
+            assert True
+
+@pytest.mark.skipif(fw._FRAMEWORK_NAME == 'torch', reason="Test only works with tf.keras and keras frameworks")
+class TestTensorflowFeeder:
+      
+      def test_placeholder_tensorflow(self):
+            assert True
