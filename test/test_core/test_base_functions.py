@@ -137,7 +137,7 @@ def test_get_reduce_axes_channel_last_2d():
     '''
     reduce_axes = get_reduce_axes(per_image=False, per_channel=False)
 
-    assert np.all([0, 1, 2, 3] == reduce_axes)
+    assert np.all((0, 1, 2, 3) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_last_per_image_2d():
@@ -155,7 +155,7 @@ def test_get_reduce_axes_channel_last_per_image_2d():
     '''
     reduce_axes = get_reduce_axes(per_image=True)
 
-    assert np.all([1, 2, 3] == reduce_axes)
+    assert np.all((1, 2, 3) == reduce_axes)
 
 
 
@@ -175,7 +175,7 @@ def test_get_reduce_axes_channel_last_per_channel_2d():
     '''
     reduce_axes = get_reduce_axes(per_channel=True)
 
-    assert np.all([0, 1, 2] == reduce_axes)
+    assert np.all((0, 1, 2) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_last_per_image_per_channel_2d():
@@ -192,7 +192,7 @@ def test_get_reduce_axes_channel_last_per_image_per_channel_2d():
     '''
 
     reduce_axes = get_reduce_axes(per_image=True, per_channel=True)
-    assert np.all([1, 2] == reduce_axes)
+    assert np.all((1, 2) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_2d():
@@ -210,7 +210,7 @@ def test_get_reduce_axes_channel_first_2d():
     '''
     reduce_axes = get_reduce_axes(data_format='channels_first')
 
-    assert np.all([0, 1, 2, 3] == reduce_axes)
+    assert np.all((0, 1, 2, 3) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_per_image_2d():
@@ -228,7 +228,7 @@ def test_get_reduce_axes_channel_first_per_image_2d():
     '''
     reduce_axes = get_reduce_axes(per_image=True, data_format='channels_first')
 
-    assert np.all([1, 2, 3] == reduce_axes)
+    assert np.all((1, 2, 3) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_per_channel_2d():
@@ -246,7 +246,7 @@ def test_get_reduce_axes_channel_first_per_channel_2d():
     '''
     reduce_axes = get_reduce_axes(per_channel=True, data_format='channels_first')
 
-    assert np.all([0, 2, 3] == reduce_axes)
+    assert np.all((0, 2, 3) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_per_image_per_channel_2d():
@@ -265,7 +265,7 @@ def test_get_reduce_axes_channel_first_per_image_per_channel_2d():
 
     reduce_axes = get_reduce_axes(per_image=True, per_channel=True, data_format='channels_first')
     
-    assert np.all([2, 3] == reduce_axes)
+    assert np.all((2, 3) == reduce_axes)
 
 @given(text_strategy)
 @settings(max_examples=10, deadline=None)
@@ -302,7 +302,7 @@ def test_get_reduce_axes_channel_last_3d():
     '''
     reduce_axes = get_reduce_axes(tensor_dims=5, per_image=False, per_channel=False)
 
-    assert np.all([0, 1, 2, 3, 4] == reduce_axes)
+    assert np.all((0, 1, 2, 3, 4) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_last_per_image_3d():
@@ -320,7 +320,7 @@ def test_get_reduce_axes_channel_last_per_image_3d():
     '''
     reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True)
 
-    assert np.all([1, 2, 3, 4] == reduce_axes)
+    assert np.all((1, 2, 3, 4) == reduce_axes)
 
 
 
@@ -340,7 +340,7 @@ def test_get_reduce_axes_channel_last_per_channel_3d():
     '''
     reduce_axes = get_reduce_axes(tensor_dims=5, per_channel=True)
 
-    assert np.all([0, 1, 2, 3] == reduce_axes)
+    assert np.all((0, 1, 2, 3) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_last_per_image_per_channel_3d():
@@ -357,7 +357,7 @@ def test_get_reduce_axes_channel_last_per_image_per_channel_3d():
     '''
 
     reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True, per_channel=True)
-    assert np.all([1, 2, 3] == reduce_axes)
+    assert np.all((1, 2, 3) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_3d():
@@ -375,7 +375,7 @@ def test_get_reduce_axes_channel_first_3d():
     '''
     reduce_axes = get_reduce_axes(tensor_dims=5, data_format='channels_first')
 
-    assert np.all([0, 1, 2, 3, 4] == reduce_axes)
+    assert np.all((0, 1, 2, 3, 4) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_per_image_3d():
@@ -393,7 +393,7 @@ def test_get_reduce_axes_channel_first_per_image_3d():
     '''
     reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True, data_format='channels_first')
 
-    assert np.all([1, 2, 3, 4] == reduce_axes)
+    assert np.all((1, 2, 3, 4) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_per_channel_3d():
@@ -411,7 +411,7 @@ def test_get_reduce_axes_channel_first_per_channel_3d():
     '''
     reduce_axes = get_reduce_axes(tensor_dims=5, per_channel=True, data_format='channels_first')
 
-    assert np.all([0, 2, 3, 4] == reduce_axes)
+    assert np.all((0, 2, 3, 4) == reduce_axes)
 
 
 def test_get_reduce_axes_channel_first_per_image_per_channel_3d():
@@ -430,4 +430,4 @@ def test_get_reduce_axes_channel_first_per_image_per_channel_3d():
 
     reduce_axes = get_reduce_axes(tensor_dims=5, per_image=True, per_channel=True, data_format='channels_first')
     
-    assert np.all([2, 3, 4] == reduce_axes)
+    assert np.all((2, 3, 4) == reduce_axes)
