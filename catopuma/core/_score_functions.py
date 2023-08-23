@@ -165,11 +165,18 @@ def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: f
 # future score to implement
 
 def mse():
-    pass
+    '''
+    '''
+    ...
 
 
 def mae():
-    pass
+    ...
+
 
 def binary_cross_entropy():
-    pass
+    ...
+
+
+def jaccard_score():
+    ... 

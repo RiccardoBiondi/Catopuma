@@ -1,44 +1,32 @@
-Modules
-=======
 
-
-
-Feeder
-------
-
-
-.. automodule:: feeder
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :private-members:
-   :special-members:
+General Modules
+===============
 
 PreProcessing
 -------------
 
-
-.. automodule:: preprocessing
+.. automodule:: catopuma.preprocessing
    :members:
    :undoc-members:
    :show-inheritance:
    :private-members:
    :special-members:
 
-uploader
+Uploader
 --------
 
-.. automodule:: uploader
+.. automodule:: catopuma.uploader
    :members:
    :undoc-members:
    :show-inheritance:
    :private-members:
    :special-members:
 
-Losses
-------
 
-.. automodule:: losses
+Tensorflow Feeder
+------------
+
+.. automodule:: catopuma.tensorflow.feeder
    :members:
    :undoc-members:
    :show-inheritance:

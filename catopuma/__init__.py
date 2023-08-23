@@ -1,16 +1,12 @@
 '''
 '''
 import os
-import sys
-import importlib
 from catopuma.__version__ import __version__
 import catopuma.core.__framework as fw
 from typing import Iterable
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
-
-
 
 # Define some usefull functions to get the availble frameworks, get the current framework 
 # and set the current framework
@@ -93,8 +89,9 @@ set_framework(_framework)
 # import the catopuma agnostic libraries
 
 
-from catopuma import preprocessing
 from catopuma import uploader
+from catopuma import preprocessing
+
 
 if framework() in [fw._TF_KERAS_FRAMEWORK_NAME, fw._KERAS_FRAMEWORK_NAME]:
     from .tensorflow import feeder

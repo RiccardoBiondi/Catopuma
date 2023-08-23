@@ -1,9 +1,9 @@
 setup.py
 catopuma/__version__.py
-catopuma/feeder.py
-catopuma/losses.py
-catopuma/metrics.py
+catopuma/tensorflow/feeder.py
+catopuma/tensorflow/losses.py
+catopuma/torch/feeder.py
+catopuma/torch/losses.py
+
 catopuma/uploader.py
-catopuma/core/abstraction.py
-catopuma/core/_loss_functions.py
-catopuma/core/functions.py
+catopuma/preprocessing.py

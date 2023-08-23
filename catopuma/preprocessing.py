@@ -18,7 +18,7 @@ from catopuma.core._preprocessing_functions import identity
 __author__ = ['Riccardo  Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
 
-__all__ = ['PreProcessing']
+#   __all__ = ['PreProcessing']
 
 
 SCALER_LUT: Dict[str, Callable] = {
@@ -56,11 +56,11 @@ class PreProcessing(PreProcessingBase):
 
     target_label: int (default 1)
         the label to use as a target for the model.
-    
-
     '''
 
     def __init__(self,  standardizer: Union[str, Callable] = 'identity', per_image: bool = False, per_channel: bool = False, data_fromat: str = 'channels_last', target_label: int = 1):
+        '''
+        '''
         
         if isinstance(standardizer, str) & (standardizer not in [k for k, _ in SCALER_LUT.items()]):
             raise ValueError(f'Unknown standardized method: {standardizer}')
@@ -83,6 +83,7 @@ class PreProcessing(PreProcessingBase):
     def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple:
         '''
         Perform the specified preprocessing on the batch
+
         Parameters
         ----------
         X: np.ndarray
@@ -104,7 +105,6 @@ class PreProcessing(PreProcessingBase):
         y = (y == self.target_label).astype('float')
 
         axis = get_reduce_axes(tensor_dims=len(X.shape), per_image=self.per_image, per_channel=self.per_channel, data_format=self.data_format)
-
         X = self.standardizer(X, axis=axis)
 
         return X, y

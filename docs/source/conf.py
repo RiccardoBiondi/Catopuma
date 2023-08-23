@@ -16,17 +16,20 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
+import os
+import sys
+import catopuma
+sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
-project = 'PardoFelis'
-copyright = '2023, Riccardo Biondi, Nico Curti'
-author = 'Riccardo Biondi, Nico Curti'
+project = 'CATOPUMA'
+copyright = '2023, Riccardo Biondi'
+author = 'Riccardo Biondi'
 
 # The short X.Y version
-version = ''
+version = '.'.join(catopuma.__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags
-release = '0.0.1.dev1'
+release = catopuma.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -39,15 +42,12 @@ release = '0.0.1.dev1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
+            'sphinx.ext.autodoc',
+            'sphinx.ext.napoleon',
+            'sphinx.ext.viewcode',
+            'nbsphinx',
+            'sphinx.ext.mathjax',
+            'IPython.sphinxext.ipython_console_highlighting'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,7 +83,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -137,8 +137,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Catopuma.tex', 'Catopuma Documentation',
-     'Riccardo Biondi', 'manual'),
+    (master_doc, 'Catopuma.tex', 'Catopuma Documentation', 'Riccardo Biondi', 'manual'),
 ]
 
 

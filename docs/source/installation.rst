@@ -5,7 +5,7 @@ CATOPUMA offers different installation way.
 The installation process is the same for each Operative System.
 The tested os are: Windows 10 and Ubuntu.
 
-Supported python version: ![Python version](https://img.shields.io/badge/python-3.8|3.9|3.10|3.11-blue.svg).
+Supported python version: 
 
 Install with pip
 ----------------

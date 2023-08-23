@@ -86,7 +86,7 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
     return x   
 
 
-def get_reduce_axes(tensor_dims: int = 4, per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last') -> List[int]:
+def get_reduce_axes(tensor_dims: int = 4, per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last') -> Tuple[int]:
     '''
     Return the axes to use to reduce the tensor according to the given specification.
     If both per_image and per_channel are provided, then 
@@ -111,7 +111,7 @@ def get_reduce_axes(tensor_dims: int = 4, per_image: bool = False, per_channel: 
         to_remove = 1 if data_format == 'channels_first' else max(reduction_axis)
         reduction_axis.remove(to_remove)
     
-    return reduction_axis
+    return tuple(reduction_axis)
 
 
 def gather_channels(xs, indexes: Optional[Tuple[int]] = None, data_format: str = 'channels_last') -> np.ndarray:

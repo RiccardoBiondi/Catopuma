@@ -18,8 +18,7 @@ The main functionalities of CATOPUMA are as follows:
 
   - Preprocessing: CATOPUMA provides the implementation of some classes to easily perform the basic preprocessing steps on images and labels
 
-  - Augmentation: CATOPUMA provides some classes to easily perform data augmentation.
-  These classes are mainly based on albumentations.
+  - Augmentation: CATOPUMA provides some classes to easily perform data augmentation. These classes are mainly based on albumentations.
 
   - Core: the core functionality of catopèuma are the bastract classess providing a base for each of the basic functionality (like preprocessin, loss, data augmentation, etc.), allowing an easy customization of the various objects.
 

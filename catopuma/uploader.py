@@ -3,7 +3,6 @@ Module containing the implementation of the vaious Uploader to read and organize
 and tergetes.
 '''
 
-import os
 from typing import Tuple, NoReturn, Dict
 import numpy as np
 import SimpleITK as sitk
@@ -130,8 +129,8 @@ class LazyPatchBaseUploader(UploaderBase):
         Sample the patch origin according to a uniform distribution ensuring 
         that all the patch is inside the the image
         
-        Parameter
-        ---------
+        Parameters
+        ----------
             image_size: Tuple[int]
                 size of the image from which extract the patch origin
         Return
