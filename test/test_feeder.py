@@ -13,8 +13,8 @@ from catopuma.uploader import SimpleITKUploader
 from catopuma import feeder
 
 
-@pytest.mark.skipif(fw._FRAMEWORK_NAME not in ['keras', 'tf.keras'], reason="Test only works with tf.keras and keras frameworks")
-class TestTensorflowFeeder:
+#@pytest.mark.skipif(fw._FRAMEWORK_NAME not in ['keras', 'tf.keras'], reason="Test only works with tf.keras and keras frameworks")
+class TestImageFeederFeeder:
         
     def test_image_feeder_on_the_fly_default_init(self):
         '''
