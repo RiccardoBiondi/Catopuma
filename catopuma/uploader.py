@@ -112,8 +112,8 @@ class LazyPatchBaseUploader(UploaderBase):
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
             
-            if np.sum(y > 0.0) > self.threshold * np.prod(np.asarray(self.patch_size)):
-                condition = False
+            condition = np.sum(y > 0.0) < self.threshold * np.prod(np.asarray(self.patch_size))
+                
             
         _ = reader.SetFileName(path[0])
         X = sitk.GetArrayFromImage(reader.Execute())

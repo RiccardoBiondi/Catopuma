@@ -87,6 +87,11 @@ class ImageFeederOnTheFly(torch.utils.data.DataLoader):
                 augmentation_strategy: Optional[DataAgumentationBase] = None):
         
         self.batch_size = batch_size
+
+        # Here I am defining the dataset inside the init of the ImageFeederOnTheFly object. 
+        # This is not so maintainable, but could simplify the whole repo usage,
+        # However, consider to implement dependency inversion and injection pattern also in this case.
+        # Howerr It could not be necessasy required
         self.dataset = FeederDataset(img_paths=img_paths, target_paths=target_paths,
                                      uploader=uploader, preprocessing=preprocessing, augmentation_strategy=augmentation_strategy)
 
@@ -160,3 +165,25 @@ class ImageFeederOnTheFly(torch.utils.data.DataLoader):
 
         if self.shuffle is True:
             np.random.shuffle(self.indexes)
+
+
+    #
+    # Define some calss methods to init the class in different ways, like from a directory,
+    # from a dataframe or from an existing dataset
+    #
+
+    @classmethod
+    def flow_from_directory(cls):
+        pass
+
+    @classmethod
+    def from_dataset(cls):
+        pass
+
+    @classmethod
+    def flow_from_dataframe(cls):
+        pass
+
+    @classmethod
+    def flow_from_textfile(cls):
+        pass
