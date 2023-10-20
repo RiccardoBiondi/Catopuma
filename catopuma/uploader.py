@@ -101,18 +101,21 @@ class LazyPatchBaseUploader(UploaderBase):
         image_size = reader.GetSize()
         
         _ = self._checkConsistency(image_size)
+
+        # define a dummy patch image able to satisfy the 
+        # satisfy the while condtion so at least one run is 
+        # done and one patches is extracted.
+        # I have introduced this approach to reduce the cognitive 
+        # complexity of the code 
+        y = np.asarray([self.threshold * np.prod(np.asarray(self.patch_size)) - 1])
         
-        # insert the threshold case
-        condition = True
-        
-        while condition:
+        while np.sum(y) < self.threshold * np.prod(np.asarray(self.patch_size)):
             
             patch_origin = self._samplePatchOrigin(image_size)
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
-            
-            condition = np.sum(y > 0.0) < self.threshold * np.prod(np.asarray(self.patch_size))
+            y = (y > 0.).astype(np.float32)
                 
             
         _ = reader.SetFileName(path[0])
@@ -165,3 +168,5 @@ class LazyPatchBaseUploader(UploaderBase):
             
         if np.any(np.asarray(image_size) < np.asarray(self.patch_size)):
             raise ValueError(f'Patch must be contained inside the image: {image_size} < {self.patch_size}')
+
+        
