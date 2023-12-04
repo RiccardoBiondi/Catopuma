@@ -115,6 +115,8 @@ class LazyPatchBaseUploader(UploaderBase):
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
+            # ensure that all the voxel hacve 0. o 1. values with 0. as background
+            # and 1. as forground
             y = (y > 0.).astype(np.float32)
                 
             

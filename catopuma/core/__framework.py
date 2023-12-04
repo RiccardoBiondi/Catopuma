@@ -17,6 +17,9 @@ Global variables
             List of the framework supported by catopuma
     _AVAILABLE_FRAMEWORKS: Iterable[str]  
             List of the framework availble in the current python environment.
+    _DATA_FORMAT: str
+        either 'channels_last' or 'channels_first'. As default is 'channels_last', for 
+        keras and tf.keras frameworks; 'channels_first' for torch framework.
 
 Constant
 --------
@@ -47,7 +50,7 @@ __email__ = ['riccardo.biondi7@unibo.it']
 
 
 global _FRAMEWORK_BACKEND, _FRAMEWORK, _FRAMEWORK_NAME, _FRAMEWORK_BASE
-global _SUPPORTED_FRAMEWORKS, _AVAILABLE_FRAMEWORKS
+global _SUPPORTED_FRAMEWORKS, _AVAILABLE_FRAMEWORKS, _DATA_FORMAT
 
 # First of all define the framework names.
 _KERAS_FRAMEWORK_NAME: str = 'keras'
@@ -64,14 +67,13 @@ _FRAMEWORK_LUT: Dict[str, str] = {
 
 _AVAILABLE_FRAMEWORKS: Iterable[str]  = [_KERAS_FRAMEWORK_NAME]
 
-
+_DATA_FORMAT = None
 _FRAMEWORK_NAME = None
 _FRAMEWORK_BACKEND = None
 _FRAMEWORK_BASE = None
 _FRAMEWORK = None
 
 _DEFAULT_FRAMEWORK_NAME: str = _KERAS_FRAMEWORK_NAME
-
 
 
 def _retrieve_available_frameworks() -> Iterable[str]:

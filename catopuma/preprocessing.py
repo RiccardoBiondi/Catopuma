@@ -18,7 +18,7 @@ from catopuma.core._preprocessing_functions import identity
 __author__ = ['Riccardo  Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
 
-#   __all__ = ['PreProcessing']
+__all__ = ['PreProcessing']
 
 
 SCALER_LUT: Dict[str, Callable] = {
