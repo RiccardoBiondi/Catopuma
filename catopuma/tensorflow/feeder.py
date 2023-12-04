@@ -1,4 +1,12 @@
 '''
+This module contains the class to feed the images to the deep Learning model. 
+The class is implemented to load each batch at run time, saving memory when the whole
+sample is too long and too heavy.
+Moreover it allows to specify different readers for different kind of images, and for different
+reading modalities.
+Finally, it allows to augment and preprocess the input data and targets on the fly, before presenting the batch to the Model.
+
+This class inherits from tf.keras.utils.Sequence, and therefore it can be used as a generator for the fit function of the model.<
 '''
 import numpy as np
 import tensorflow as tf

@@ -58,7 +58,7 @@ class PreProcessing(PreProcessingBase):
         the label to use as a target for the model.
     '''
 
-    def __init__(self,  standardizer: Union[str, Callable] = 'identity', per_image: bool = False, per_channel: bool = False, data_fromat: str = 'channels_last', target_label: int = 1):
+    def __init__(self,  standardizer: Union[str, Callable] = 'identity', per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last', target_label: int = 1):
         '''
         '''
         
@@ -66,8 +66,8 @@ class PreProcessing(PreProcessingBase):
             raise ValueError(f'Unknown standardized method: {standardizer}')
         
         # TODO implement the data format checking into a decorator
-        if data_fromat not in ('channels_last', 'channels_first'):
-            raise ValueError(f'Unknown data format {data_fromat}. It must be one of "channels_last" or "channels_first"')
+        if data_format not in ('channels_last', 'channels_first'):
+            raise ValueError(f'Unknown data format {data_format}. It must be one of "channels_last" or "channels_first"')
 
 
         if isinstance(standardizer, str):
@@ -77,7 +77,7 @@ class PreProcessing(PreProcessingBase):
 
         self.per_image = per_image
         self.per_channel = per_channel
-        self.data_format = data_fromat
+        self.data_format = data_format
         self.target_label = target_label
 
     def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple:
