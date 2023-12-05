@@ -259,7 +259,7 @@ def test_get_patch_coords_bottom_top_coords_equal_shape(shape):
     # and finally make the assertion
 
     assert top_coord.shape == bottom_coords.shape
-    assert top_coord.shape[1] == bottom_coords.shape[1] == shape + 1
+    assert top_coord.shape[1] == bottom_coords.shape[1] == shape + 2 # -2 to consider also the channel and tha batch dimension
 
 
 def test_unpad_tensor_return_correct_shaped_tensor_channels_first():
