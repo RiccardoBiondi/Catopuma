@@ -141,6 +141,9 @@ def test_get_valid_padding_values_for_strides_shape_le_image_shape(image_shape, 
     values = _get_valid_padding_values_for_strides(array_shape=image_shape, strides=strides, patch_size=patch_size)
     # get the upper values
     upper_values = [x[1] for x in values]
+
+    # remove channel and batch dimensions
+    upper_values.pop(0)
     upper_values.pop(_CHANNEL_AXIS[_DATA_FORMAT])
     upper_values = np.asarray(upper_values)
     assert all(upper_values <= image_shape)
@@ -173,11 +176,13 @@ def test_get_same_padding_values_for_strides_correct_vals():
         gt.append([0, 0])
     else:
         gt.insert(0, [0, 0])
-
-        assert np.all(pad_values == gt)
+        
+    # add also the batch dimension 
+    gt.insert(0, [0, 0])
+    assert np.all(pad_values == gt)
 
 @pytest.mark.skipif(_FRAMEWORK_NAME == 'torch', reason='test specific for tf.keras or keras framework')
-@given(st.tuples(st.integers(16, 64), st.integers(128, 160), st.integers(2,5)),
+@given(st.tuples(st.integers(1, 16), st.integers(16, 64), st.integers(128, 160), st.integers(2,5)),
        st.tuples(st.integers(16, 32), st.integers(32, 64)))
 @settings(max_examples=5,
         deadline=None,
@@ -185,35 +190,36 @@ def test_get_same_padding_values_for_strides_correct_vals():
 def test_padding_same_correct_pad_2d_tf(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for tf.keras, keras frameworks. 
-    Given an image in the format  (h, w, n_channels) and a series of padding values along each dimension 
+    Given an image in the format  (batch, h, w, n_channels) and a series of padding values along each dimension 
     produce the correctly padding tensor. 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (h, w, n_channels), with n_channels != h != w
+        - tensor image of shape (batch, h, w, n_channels), with n_channels != h != w
         - padding values for each direction (p_h, p_w, 0); p_h != p_w
     Then
     ----
         - pad the image image
     Assert
     ------
-        - paddes image shape == (h + p_h, w + p_w, n_channels) 
+        - paddes image shape == (batch, h + p_h, w + p_w, n_channels) 
     '''
     tensor = B.random.normal(t_shape)
 
     pad_shape = [[0, s] for s in pad_shape]
-    pad_shape.append([0, 0])
-
+    pad_shape.append([0, 0]) # channel dimension
+    pad_shape.insert(0, [0, 0]) # batch dimension
     padded = _pad_tensor_same(tensor, pad_shape)
     
     gt = tuple([s + w[1] for s, w in zip(t_shape, pad_shape)])
+
 
     assert tuple(padded.shape) == gt
 
 
 @pytest.mark.skipif(_FRAMEWORK_NAME == 'torch', reason='test specific for tf.keras or keras framework')
-@given(st.tuples(st.integers(16, 64), st.integers(128, 160), st.integers(256, 288), st.integers(2,5)),
+@given(st.tuples(st.integers(1, 16), st.integers(16, 64), st.integers(128, 160), st.integers(256, 288), st.integers(2,5)),
        st.tuples(st.integers(16, 32), st.integers(32, 64), st.integers(21, 64)))
 @settings(max_examples=5,
         deadline=None,
@@ -221,27 +227,28 @@ def test_padding_same_correct_pad_2d_tf(t_shape, pad_shape):
 def test_padding_same_correct_pad_3d_tf(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for tf.keras, keras frameworks. 
-    Given an image in the format  (h, w, d, n_channels) and a series of padding values along each dimension 
+    Given an image in the format  (batch, h, w, d, n_channels) and a series of padding values along each dimension 
     produce the correctly padding tensor. 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (h, w, d, n_channels), with n_channels != h != w != d
+        - tensor image of shape (batch, h, w, d, n_channels), with n_channels != h != w != d
         - padding values for each direction (p_h, p_w, 0); p_h != p_w != p_d
     Then
     ----
         - pad the image
     Assert
     ------
-        - paddes image shape == (h + p_h, w + p_w, d + p_d, n_channels) 
+        - paddes image shape == (batch, h + p_h, w + p_w, d + p_d, n_channels) 
     
     '''
 
     tensor = B.random.normal(t_shape)
 
     pad_shape = [(0, s) for s in pad_shape]
-    pad_shape.append((0, 0))
+    pad_shape.append((0, 0)) # channel dimension
+    pad_shape.append((0, 0)) # batch dimension
 
     padded = _pad_tensor_same(tensor, pad_shape)
     
@@ -252,7 +259,7 @@ def test_padding_same_correct_pad_3d_tf(t_shape, pad_shape):
 
 
 @pytest.mark.skipif(_FRAMEWORK_NAME != 'torch', reason='test specific fortorch framework')
-@given(st.tuples(st.integers(2,5), st.integers(16, 64), st.integers(128, 160)),
+@given(st.tuples(st.integers(1, 16), st.integers(2,5), st.integers(16, 64), st.integers(128, 160)),
        st.tuples(st.integers(16, 32), st.integers(32, 64)))
 @settings(max_examples=5,
         deadline=None,
@@ -260,25 +267,26 @@ def test_padding_same_correct_pad_3d_tf(t_shape, pad_shape):
 def test_padding_same_correct_pad_2d_tc(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for torch. 
-    Given an image in the format  (n_channels, h, w) and a series of padding values along each dimension 
+    Given an image in the format  (batch, n_channels, h, w) and a series of padding values along each dimension 
     produce the correctly padding tensor. 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (n_channels, h, w), with n_channels != h != w
+        - tensor image of shape (batch, n_channels, h, w), with n_channels != h != w
         - padding values for each direction (p_h, p_w, 0); p_h != p_w
     Then
     ----
         - pad the image image
     Assert
     ------
-        - paddes image shape == (n_channels, h + p_h, w + p_w) 
+        - paddes image shape == (batch, n_channels, h + p_h, w + p_w) 
     '''
     tensor = B.rand(t_shape)
 
     pad_shape = [(0, s) for s in pad_shape]
-    pad_shape.insert(0, (0, 0))
+    pad_shape.insert(0, (0, 0)) # channel dimension
+    pad_shape.insert(0, (0, 0)) # batch dimension
 
     # remember that pytorch requires tha padding backward than tensorflow
     padded = _pad_tensor_same(tensor, tuple(pad_shape))
@@ -289,7 +297,7 @@ def test_padding_same_correct_pad_2d_tc(t_shape, pad_shape):
 
 
 @pytest.mark.skipif(_FRAMEWORK_NAME != 'torch', reason='test specific for torch')
-@given(st.tuples(st.integers(2,5), st.integers(16, 64), st.integers(128, 160), st.integers(256, 288)),
+@given(st.tuples(st.integers(1, 16), st.integers(2,5), st.integers(16, 64), st.integers(128, 160), st.integers(256, 288)),
        st.tuples(st.integers(16, 32), st.integers(32, 64), st.integers(21, 64)))
 @settings(max_examples=5,
         deadline=None,
@@ -297,20 +305,20 @@ def test_padding_same_correct_pad_2d_tc(t_shape, pad_shape):
 def test_padding_same_correct_pad_3d_tc(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for torch frameworks. 
-    Given an image in the format  (n_channels, h, w, d) and a series of padding values along each dimension 
+    Given an image in the format  (batch, n_channels, h, w, d) and a series of padding values along each dimension 
     produce the correctly padding tensor. 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (n_channels, h, w, d, ), with n_channels != h != w != d
+        - tensor image of shape (batch, n_channels, h, w, d, ), with n_channels != h != w != d
         - padding values for each direction (p_h, p_w, 0); p_h != p_w != p_d
     Then
     ----
         - pad the image
     Assert
     ------
-        - paddes image shape == (n_channels, h + p_h, w + p_w, d + p_d) 
+        - paddes image shape == (batch, n_channels, h + p_h, w + p_w, d + p_d) 
     
     '''
 
@@ -318,7 +326,8 @@ def test_padding_same_correct_pad_3d_tc(t_shape, pad_shape):
 
     # here the padding shape is formatted as torch requires
     pad_shape = [[0, s] for s in  pad_shape]
-    pad_shape.insert(0, [0, 0])
+    pad_shape.insert(0, [0, 0]) # channel dimension
+    pad_shape.insert(0, [0, 0]) # batch dimension
 
     # remember that pytorch requires tha padding backward than tensorflow
     padded = _pad_tensor_same(tensor, tuple(pad_shape))
@@ -331,7 +340,7 @@ def test_padding_same_correct_pad_3d_tc(t_shape, pad_shape):
 
 
 @pytest.mark.skipif(_FRAMEWORK_NAME == 'torch', reason='test specific for tf.keras or keras framework')
-@given(st.tuples(st.integers(32, 64), st.integers(128, 160), st.integers(2,5)),
+@given(st.tuples(st.integers(1, 16), st.integers(32, 64), st.integers(128, 160), st.integers(2,5)),
        st.tuples(st.integers(8, 16), st.integers(32, 64)))
 @settings(max_examples=5,
         deadline=None,
@@ -339,37 +348,39 @@ def test_padding_same_correct_pad_3d_tc(t_shape, pad_shape):
 def test_padding_valid_correct_pad_2d_tf(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for tf.keras, keras frameworks. 
-    Given an image in the format  (h, w, n_channels) and a series of padding values along each dimension 
+    Given an image in the format  (batch, h, w, n_channels) and a series of padding values along each dimension 
     produce the correctly padding tensor (in valid flavour). 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (h, w, n_channels), with n_channels != h != w
+        - tensor image of shape (batch, h, w, n_channels), with n_channels != h != w
         - padding values for each direction (p_h, p_w, 0); p_h != p_w
     Then
     ----
         - pad the image image
     Assert
     ------
-        - paddes image shape == (p_h, p_w, n_channels) 
+        - paddes image shape == (batch, p_h, p_w, n_channels) 
     '''
     tensor = B.random.normal(t_shape)
 
     pad_shape = [[0, s] for s in pad_shape]
-    pad_shape.append([None, None])
+    pad_shape.append([None, None]) # channel dimension
+    pad_shape.insert(0, [None, None]) # batch dimension
 
     padded = _pad_tensor_valid(tensor, pad_shape)
     
-    gt = [w[1] for w in pad_shape[:-1]]
-    gt.append(t_shape[-1])
+    gt = [w[1] for w in pad_shape[1:-1]]
+    gt.append(t_shape[-1]) # channel dimension
+    gt.insert(0, t_shape[0]) # batch dimension
 
     assert tuple(padded.shape) == tuple(gt)
 
 
 
 @pytest.mark.skipif(_FRAMEWORK_NAME == 'torch', reason='test specific for tf.keras or keras framework')
-@given(st.tuples(st.integers(32, 64), st.integers(128, 160), st.integers(256, 288), st.integers(2,5)),
+@given(st.tuples(st.integers(1, 16), st.integers(32, 64), st.integers(128, 160), st.integers(256, 288), st.integers(2,5)),
        st.tuples(st.integers(8, 16), st.integers(32, 64), st.integers(21, 64)))
 @settings(max_examples=5,
         deadline=None,
@@ -377,30 +388,32 @@ def test_padding_valid_correct_pad_2d_tf(t_shape, pad_shape):
 def test_padding_valid_correct_pad_3d_tf(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for tf.keras, keras frameworks. 
-    Given an image in the format  (h, w, d, n_channels) and a series of padding values along each dimension 
+    Given an image in the format  (batch, h, w, d, n_channels) and a series of padding values along each dimension 
     produce the correctly padding tensor (in valid flavour). 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (h, w, d, n_channels), with n_channels != h != w
+        - tensor image of shape (batch, h, w, d, n_channels), with n_channels != h != w
         - padding values for each direction (p_h, p_w, p_d); p_h != p_w != p_d
     Then
     ----
         - pad the image
     Assert
     ------
-        - paddes image shape == (p_h, p_w, p_d, n_channels) 
+        - paddes image shape == (batch, p_h, p_w, p_d, n_channels) 
     '''
     tensor = B.random.normal(t_shape)
 
     pad_shape = [[0, s] for s in pad_shape]
-    pad_shape.append([None, None])
+    pad_shape.append([None, None]) # channel dimension
+    pad_shape.insert(0, [None, None]) # batch dimension 
 
     padded = _pad_tensor_valid(tensor, pad_shape)
     
-    gt = [w[1] for w in pad_shape[:-1]]
-    gt.append(t_shape[-1])
+    gt = [w[1] for w in pad_shape[1: -1]]
+    gt.append(t_shape[-1]) # add channel dimension
+    gt.insert(0, t_shape[0]) # add batch dimension
 
     assert tuple(padded.shape) == tuple(gt)
 
@@ -408,8 +421,8 @@ def test_padding_valid_correct_pad_3d_tf(t_shape, pad_shape):
 
 
 
-@pytest.mark.skipif(_FRAMEWORK_NAME != 'torch', reason='test specific fortorch framework')
-@given(st.tuples(st.integers(2, 5), st.integers(64, 128), st.integers(128, 160)),
+@pytest.mark.skipif(_FRAMEWORK_NAME != 'torch', reason='test specific for torch framework')
+@given(st.tuples(st.integers(1, 16), st.integers(2, 5), st.integers(64, 128), st.integers(128, 160)),
        st.tuples(st.integers(8, 16), st.integers(16, 32)))
 @settings(max_examples=5,
         deadline=None,
@@ -417,37 +430,39 @@ def test_padding_valid_correct_pad_3d_tf(t_shape, pad_shape):
 def test_padding_valid_correct_pad_2d_tc(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for torch. 
-    Given an image in the format  (n_channels, h, w) and a series of padding values along each dimension 
+    Given an image in the format  (batch, n_channels, h, w) and a series of padding values along each dimension 
     produce the correctly padding tensor. 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (n_channels, h, w), with n_channels != h != w
+        - tensor image of shape (batch, n_channels, h, w), with n_channels != h != w
         - padding values for each direction (p_h, p_w, 0); p_h != p_w
     Then
     ----
         - pad the image image
     Assert
     ------
-        - paddes image shape == (n_channels, p_h, p_w) 
+        - paddes image shape == (batch, n_channels, p_h, p_w) 
     '''
     tensor = B.rand(t_shape)
 
     pad_shape = [(0, s) for s in pad_shape]
-    pad_shape.insert(0, [None, None])
+    pad_shape.insert(0, [None, None]) # channel dimension
+    pad_shape.insert(0, [None, None]) # batch dimension
 
     # remember that pytorch requires tha padding backward than tensorflow
     padded = _pad_tensor_valid(tensor, tuple(pad_shape))
 
-    gt = [w[1] for w in pad_shape[1:]]
-    gt.insert(0, t_shape[0])
+    gt = [w[1] for w in pad_shape[2:]]
+    gt.insert(0, t_shape[1]) # channel dimension
+    gt.insert(0, t_shape[0]) # batch dimension
 
     assert tuple(padded.shape) == tuple(gt)
 
 
 @pytest.mark.skipif(_FRAMEWORK_NAME != 'torch', reason='test specific for torch')
-@given(st.tuples(st.integers(2,5), st.integers(16, 64), st.integers(128, 160), st.integers(256, 288)),
+@given(st.tuples(st.integers(1, 16), st.integers(2, 5), st.integers(16, 64), st.integers(128, 160), st.integers(256, 288)),
        st.tuples(st.integers(8, 16), st.integers(32, 64), st.integers(128, 155)))
 @settings(max_examples=5,
         deadline=None,
@@ -455,20 +470,20 @@ def test_padding_valid_correct_pad_2d_tc(t_shape, pad_shape):
 def test_padding_valid_correct_pad_3d_tc(t_shape, pad_shape):
     '''
     Check that a correct padding is achieved for torch frameworks. 
-    Given an image in the format  (n_channels, h, w, d) and a series of padding values along each dimension 
+    Given an image in the format  (batch, n_channels, h, w, d) and a series of padding values along each dimension 
     produce the correctly padding tensor. 
     This is aims to test that the padding function is stable to framework changes.
     
     Given
     -----
-        - tensor image of shape (n_channels, h, w, d, ), with n_channels != h != w != d
+        - tensor image of shape (batch, n_channels, h, w, d, ), with n_channels != h != w != d
         - padding values for each direction (p_h, p_w, 0); p_h != p_w != p_d
     Then
     ----
         - pad the image
     Assert
     ------
-        - paddes image shape == (n_channels, h + p_h, w + p_w, d + p_d) 
+        - paddes image shape == (batch, n_channels, h + p_h, w + p_w, d + p_d) 
     
     '''
 
@@ -476,15 +491,14 @@ def test_padding_valid_correct_pad_3d_tc(t_shape, pad_shape):
 
     # here the padding shape is formatted as torch requires
     pad_shape = [[0, s] for s in  pad_shape]
-    pad_shape.insert(0, [None, None])
+    pad_shape.insert(0, [None, None]) # channel dimension
+    pad_shape.insert(0, [None, None]) # batch dimension
 
     # remember that pytorch requires tha padding backward than tensorflow
     padded = _pad_tensor_valid(tensor, pad_shape)
     
-    gt = [w[1] for w in pad_shape[1:]]
-    gt.insert(0, t_shape[0])
+    gt = [w[1] for w in pad_shape[2:]]
+    gt.insert(0, t_shape[1]) # channel dimension
+    gt.insert(0, t_shape[0]) # batch dimension
 
     assert tuple(padded.shape) == tuple(gt)
-
-
-

@@ -8,6 +8,19 @@ from catopuma.core.__framework import _FRAMEWORK_BASE
 from catopuma.core._padding_functions import get_padding_values_for_strides
 from catopuma.core._padding_functions import pad_tensor
 
+if _FRAMEWORK_NAME == 'torch':
+    
+    def add_batch_axis(tensor):
+        
+        return _FRAMEWORK_BASE.unsqueeze(tensor, 0)
+
+else:
+    def add_batch_axis(tensor):
+        
+        return _FRAMEWORK_BASE.expand_dims(tensor, 0)
+ 
+
+
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
 __all__ = ['PatchPredict']
@@ -199,7 +212,11 @@ class PatchPredict:
 
     @property
     def unpad(self):
-        pass
+        """
+        unpad property. Specify if (or not) unpad the image after the patch prediction.
+        The unpadding takes effect only if padding is same.
+        """
+        return self._unpad
 
     @unpad.setter
     def unpad(self, value):
@@ -276,6 +293,25 @@ class PatchPredict:
 
         return tensor_shape[1:]
 
+
+    def _drop_batch_index(self, tensor_shape: Tuple[int]) -> Tuple[int]:
+        '''
+        Drop the batch index, which is the first dimension
+
+        Parameter
+        ---------
+        tensor_shape: Tuple[int]
+            shape of the input tensor tensor.
+            The shape must be (batch, n_channels, w, h, d) or (batch, n_channels, w, h) if data_format is channels_first of 
+            (batch, w, h, d, n_channels) or (batch, w, h, n_channels) if data_format is channels_last.
+
+        Return
+        ------
+        dropped_shape: Tuple[int]
+            tensor shape without the bitch dimension.
+        '''
+        return tensor_shape[1:]
+
     def _get_patch_coords(self, padded_tensor_shape: Tuple[int]) -> Tuple[List[int]]:
         '''
         Compute the top and bottom coordinates on each direction for all the patches.
@@ -293,7 +329,7 @@ class PatchPredict:
 
         '''
 
-        # compute the numner of patches in each direction
+        # compute the number of patches in each direction
         n_patches = [int((d - p) / s) + 1 for d, p, s in zip(padded_tensor_shape, self.patch_size, self.strides)]
 
         # for each direction create the range of values
@@ -312,12 +348,16 @@ class PatchPredict:
         channel_indexes = len(coords_top_corner[0]) * [None]
 
         if self.data_format == 'channels_first':
-            coords_bottom_corner.inser(0, channel_indexes)
+            coords_bottom_corner.insert(0, channel_indexes)
             coords_top_corner.insert(0, channel_indexes)
 
         else:
             coords_bottom_corner.append(channel_indexes)
             coords_top_corner.append(channel_indexes)
+        
+        # add batch dimension
+        coords_bottom_corner.insert(0, channel_indexes)
+        coords_top_corner.insert(0, channel_indexes)      
         
         coords_bottom_corner = np.stack(coords_bottom_corner)
         coords_top_corner = np.stack(coords_top_corner)
@@ -332,25 +372,13 @@ class PatchPredict:
         '''
         Prediction step for a single patch. 
         It will make the prediction for the selected patch and update the mask.
-        To make the prediction it will call
-            - model.predict(patch), if the framework si tf.keras/keras
-            - model(patch), if the framework is torch  
         '''
 
         slices = tuple([slice(t, b) for t, b in zip(top, bottom)])
         input_ = padded_tensor[slices]
 
-
-
         # add a fucntion to make the prediction
-        if _FRAMEWORK_NAME == 'torch':
-            res = self.model(input_)
-        else:
-            input_ = _FRAMEWORK_BASE.expand_dims(input_, 0)
-            res = self.model(input_)
-            res = _FRAMEWORK_BASE.reshape(res, res.shape[1:])
-
-        
+        res = self.model(input_)
         # update also the mask and the prediction
         self.mask[slices] = self.mask[slices] + 1
         self.pred[slices] = self.pred[slices] + res
@@ -372,7 +400,6 @@ class PatchPredict:
         unpadded: tensort
             the unpadded input tensor
         '''
-        print(pad_values)
         slices = tuple([slice(up, -down) for up, down in pad_values])
 
         return tensor[slices]
@@ -388,17 +415,21 @@ class PatchPredict:
             input tensor to predict. 
             The shape must be (n_channels, w, h, d) or (n_channels, w, h) if data_format is channels_first of 
             (w, h, d, n_channels) or (w, h, n_channels) if data_format is channels_last.
-            The prediction is made on a single image, no batch dimension is allowed
+            The prediction is made on a single image, no batch dimension is allowed.
         
         Return
         ------
         pred: tensor
-            output prediction tensor with the same shape of the input one.
+            output prediction tensor with the same shape of the input one, plus a 1D batch dimension
         """
+        # first of all add the batch dimension at the beginning of the image
+        # to make it managable by the prediction (forward) method of tensorflow (pytorch)
+        X = add_batch_axis(X)
 
         # get the image shape and drop the channel one
         array_shape = np.asarray(X.shape)
-        tensor_shape = self._drop_channel_index(array_shape)
+        tensor_shape = self._drop_batch_index(array_shape)
+        tensor_shape = self._drop_channel_index(tensor_shape)
         # get the eventual padding dimensions
 
         pad_values = get_padding_values_for_strides(array_shape=tensor_shape, patch_size=self.patch_size,
@@ -409,6 +440,7 @@ class PatchPredict:
         padded_tensor_shape = self._drop_channel_index(np.asarray(padded_tensor.shape))
         # make the zero valued array for the prediction
         # and the mask to normalize the array
+        # TODO: find a way to handel also the multichannel outputs
         self.pred = np.zeros(shape=padded_tensor.shape)
         self.mask = np.zeros(shape=padded_tensor.shape)
 

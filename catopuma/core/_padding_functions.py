@@ -97,7 +97,9 @@ def _get_valid_padding_values_for_strides(array_shape: Iterable[int], strides: I
 
     # now add te values to make the shape compatible with the padding 
     padding_values = _add_channel_values(padding_values, [None, None])
-    #padding_values.insert(_CHANNEL_AXIS[_DATA_FORMAT], [None, None])
+    # now add the padding values for the batch axis, corresponding to the zero dimension
+    _ = padding_values.insert(0, [None, None])
+
     return padding_values
 
 
@@ -130,12 +132,13 @@ def _get_same_padding_values_for_strides(array_shape: Iterable[int], strides: It
     pad_depth = [max(p - s, 0) if d % s == 0 else max(p - (d % s), 0) for p, s, d in zip(patch_size, strides, array_shape)]
 
     # now compute the values to add before and after for each direction
-
     pad_values = [[depth // 2, depth - (depth // 2)] for depth in pad_depth]
 
     # now add the channel dimension according to the data format
-    #pad_values.insert(_CHANNEL_AXIS[_DATA_FORMAT], [0, 0])
+    #and then add the batch dimension
     pad_values = _add_channel_values(pad_values, [0, 0])
+    _ = pad_values.insert(0, [0, 0])
+
     return pad_values
 
 
