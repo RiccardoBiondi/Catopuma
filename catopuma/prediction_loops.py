@@ -331,6 +331,7 @@ class PatchPredict:
 
         # compute the number of patches in each direction
         n_patches = [int((d - p) / s) + 1 for d, p, s in zip(padded_tensor_shape, self.patch_size, self.strides)]
+        print(n_patches)
 
         # for each direction create the range of values
         ranges = [np.arange(0, n_patch, 1) for n_patch in n_patches]
@@ -373,15 +374,34 @@ class PatchPredict:
         Prediction step for a single patch. 
         It will make the prediction for the selected patch and update the mask.
         '''
-
         slices = tuple([slice(t, b) for t, b in zip(top, bottom)])
         input_ = padded_tensor[slices]
 
         # add a fucntion to make the prediction
-        res = self.model(input_)
+        res = self.model.predict(input_)
         # update also the mask and the prediction
-        self.mask[slices] = self.mask[slices] + 1
+        self.mask[slices] += 1#self.mask[slices] + 1
         self.pred[slices] = self.pred[slices] + res
+
+
+    def _unpad_values(self, pad_values: Tuple[int]) -> Tuple[int]:
+        '''
+        Convert the padding values to the unpadding ones replacing the 
+        [0, 0] values for batch and channels with [None, None] to consider the 
+        whole dimension. 
+        '''
+        
+        out_vals = self._drop_batch_index(np.asarray(pad_values))
+        out_vals = list(self._drop_channel_index(out_vals))
+
+        # now add the indexes according to the data format
+        if self.data_format == 'channels_first':
+            out_vals.insert(0, [None, None])
+        else:
+            out_vals.append([None, None])
+        out_vals.insert(0, [None, None])
+
+        return out_vals
 
     def _unpad_tensor(self, tensor, pad_values) -> None:
         '''
@@ -400,7 +420,7 @@ class PatchPredict:
         unpadded: tensort
             the unpadded input tensor
         '''
-        slices = tuple([slice(up, -down) for up, down in pad_values])
+        slices = tuple([slice(up, -down if down is not None else down) for up, down in pad_values])
 
         return tensor[slices]
 
@@ -437,7 +457,8 @@ class PatchPredict:
 
         # then pad the array
         padded_tensor = pad_tensor(X, pad_values, self._padding) 
-        padded_tensor_shape = self._drop_channel_index(np.asarray(padded_tensor.shape))
+        padded_tensor_shape = self._drop_batch_index(np.asarray(padded_tensor.shape))
+        padded_tensor_shape = self._drop_channel_index(padded_tensor_shape)
         # make the zero valued array for the prediction
         # and the mask to normalize the array
         # TODO: find a way to handel also the multichannel outputs
@@ -452,12 +473,19 @@ class PatchPredict:
             self._prediction_step(top, bottom, padded_tensor)
         # now normalize the prediction to obtain a valid activation map
 
-        
         self.pred = self.pred / self.mask
         # and, if required, unpad the image
         if self._unpad & (self.padding == 'same'):
-            self.pred = self._unpad_tensor(self.pred, pad_values)
+            unpad_vals = self._unpad_values(pad_values)
+            self.pred = self._unpad_tensor(self.pred, unpad_vals)
 
         # finally return the result
 
         return self.pred
+
+
+
+
+
+if __name__ == '__main__':
+    main()
