@@ -41,14 +41,24 @@ class SimpleITKUploader(UploaderBase):
     def __call__(self, *path: Tuple[str]) -> Tuple[np.ndarray]:
         '''
         '''
-        img = sitk.ReadImage(path[0]) # input path must be first
+        img_path = path[0]
+        tar_path = path[1]
+
+        if isinstance(img_path, str):
+            # if I have ony a single image, convert the single path to a list with a single path,
+            # to handle with a single code both the single channel and the multichannel case
+            img_path = [img_path]
+        
+        imgs = []
+        for i in img_path:
+            im = sitk.ReadImage(i)
+            im = sitk.GetArrayFromImage(im)
+            im = np.expand_dims(im, axis=self.EXPANSION_AXIS[self.data_format])
+            imgs.append(im)
+
+        img = np.concatenate(imgs, axis=self.EXPANSION_AXIS[self.data_format])
         tar = sitk.ReadImage(path[1]) # target path must be second
-
-        # convert the images to array
-        img = sitk.GetArrayFromImage(img)
         tar = sitk.GetArrayFromImage(tar)
-
-        img = np.expand_dims(img, axis=self.EXPANSION_AXIS[self.data_format])
         tar = np.expand_dims(tar, axis=self.EXPANSION_AXIS[self.data_format])
 
         return img, tar
@@ -95,6 +105,7 @@ class LazyPatchBaseUploader(UploaderBase):
 
     def __call__(self, *path: Tuple[str]) -> Tuple[np.array]:
         
+ 
         reader = sitk.ImageFileReader()
         _ = reader.SetFileName(path[-1])
         _ = reader.ReadImageInformation()
@@ -115,6 +126,8 @@ class LazyPatchBaseUploader(UploaderBase):
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
+            # ensure that all the voxel hacve 0. o 1. values with 0. as background
+            # and 1. as forground
             y = (y > 0.).astype(np.float32)
                 
             

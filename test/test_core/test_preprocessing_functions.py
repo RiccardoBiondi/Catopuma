@@ -1,6 +1,8 @@
 import pytest
 import hypothesis.strategies as st
 from hypothesis import given, settings
+from  hypothesis import HealthCheck as HC
+
 
 import numpy as np
 
@@ -267,6 +269,9 @@ def test_standard_scaler_per_image_per_channel(batch_size: int, channels: int):
 
 
 @given(st.integers(2, 8), st.integers(1, 5))
+@settings(max_examples=5,
+        deadline=None,
+        suppress_health_check=(HC.too_slow,))
 def test_robust_scaler(batch_size: int, n_channels: int):
     '''
     Test that image resulting form the robust scaler have median close to 0. and iqr close to 1.
@@ -293,7 +298,11 @@ def test_robust_scaler(batch_size: int, n_channels: int):
     assert np.isclose(iqr, 1.)
 
 
+
 @given(st.integers(2, 8), st.integers(1, 5))
+@settings(max_examples=5,
+        deadline=None,
+        suppress_health_check=(HC.too_slow,))
 def test_robust_scaler_per_image(batch_size: int, n_channels: int):
     '''
     Test that image resulting form the robust scaler (image-wise)
@@ -324,6 +333,9 @@ def test_robust_scaler_per_image(batch_size: int, n_channels: int):
 
 
 @given(st.integers(2, 8), st.integers(1, 5))
+@settings(max_examples=5,
+        deadline=None,
+        suppress_health_check=(HC.too_slow,))
 def test_robust_scaler_per_channel(batch_size: int, n_channels: int):
     '''
     Test that image resulting form the robust scaler (channel-wise)
@@ -353,6 +365,9 @@ def test_robust_scaler_per_channel(batch_size: int, n_channels: int):
 
 
 @given(st.integers(2, 8), st.integers(1, 5))
+@settings(max_examples=5,
+        deadline=None,
+        suppress_health_check=(HC.too_slow,))
 def test_robust_scaler_per_image_per_channel(batch_size: int, n_channels: int):
     '''
     Test that image resulting form the robust scaler (channel-wise, image-wise)

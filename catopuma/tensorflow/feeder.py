@@ -142,3 +142,20 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
 
         if self.shuffle is True:
             np.random.shuffle(self.indexes)
+
+
+    @classmethod
+    def flow_from_directory(cls, directory: str, batch_size: int = 8, shuffle: bool = True,
+                            uploader: UploaderBase = SimpleITKUploader(), preprocessing: PreProcessingBase = None,
+                            data_augmentation: DataAgumentationBase = None):
+        '''
+        Class method to create a feeder from a directory.
+
+        Parameters
+        ----------
+        directory: str
+            the path to the directory containing the images and the targets.
+            The images and the targets must be in the same directory, and the targets must have the same name of the
+            corresponding image, with the only difference being the extension.
+        '''
+        pass

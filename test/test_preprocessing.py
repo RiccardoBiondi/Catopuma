@@ -67,7 +67,7 @@ def test_pre_processing_init(data_format: str, per_channel: bool,
     '''
     
     preprocess = PreProcessing(
-                            data_fromat=data_format,
+                            data_format=data_format,
                             per_channel=per_channel,
                             per_image=per_image,
                             standardizer=standardizer,
@@ -96,7 +96,7 @@ def test_pre_processing_raise_value_error_wrong_data_format(data_format: str):
     
 
     with pytest.raises(ValueError):
-        preprocess = PreProcessing(data_fromat=data_format)
+        preprocess = PreProcessing(data_format=data_format)
 
 
 
