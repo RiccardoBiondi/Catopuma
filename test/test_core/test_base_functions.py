@@ -61,7 +61,7 @@ def test__gather_channel_raise_value_error(data_format: str) :
 
 @given(st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
 @settings(max_examples=10, deadline=None)
-def test__gater_channel_channel_first(number_of_channels, indexes):
+def test__gather_channel_channel_first(number_of_channels, indexes):
     '''
     Test if the function correctly gathe a single channel in channel first modality
 
@@ -92,7 +92,7 @@ def test__gater_channel_channel_first(number_of_channels, indexes):
 
 @given(st.integers(min_value=6, max_value=10), st.lists(st.integers(min_value=0, max_value=5,), min_size=1, max_size=3))
 @settings(max_examples=10, deadline=None)
-def test__gater_channel_channel_last(number_of_channels, indexes):
+def test__gather_channel_channel_last(number_of_channels, indexes):
     '''
     Test if the function correctly gathe a single channel in channel first modality
 

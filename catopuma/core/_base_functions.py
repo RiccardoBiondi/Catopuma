@@ -44,13 +44,13 @@ BASE_DATA_FORMAT_GATHING_AXIS: Dict[str, List[int]] = {
 # In this way the if statement should be exeuted only once providing the function specific for the framework.
 # Notice that only one framework works at time
 
-if _FRAMEWORK_NAME == 'troch':
+if _FRAMEWORK_NAME == 'torch':
     
     def __gate_by_framework(x, indexes, axis):
         '''
         '''
 
-        return F.index_select(x, axis, F.tensor(indexes))
+        return F.index_select(x, dim=axis, index=F.tensor(indexes))
 else:
     def __gate_by_framework(x, indexes, axis):
         '''
