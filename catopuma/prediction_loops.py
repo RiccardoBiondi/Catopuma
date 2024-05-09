@@ -64,7 +64,7 @@ class PatchPredict:
     For tf.keras or keras frameworks:
 
     >>> import os
-    >>> os.
+    >>> os.environ['CATOPUMA_FRAMEWORK'] = 'tf.keras'
     >>> import catopuma
     >>> from catopuma.prediction_loops import PatchPredict
     >>> import SimpleITK as sitk
