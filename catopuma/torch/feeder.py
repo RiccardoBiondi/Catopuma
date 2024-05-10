@@ -42,7 +42,7 @@ class FeederDataset(torch.utils.data.Dataset):
 
         return len(self.img_paths)
 
-    def __getitem__(self, idxs: List[int]) -> Tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
         '''
         Return the batch corresponding of idx.
 
@@ -61,7 +61,7 @@ class FeederDataset(torch.utils.data.Dataset):
         # get the list of index for the batch
 
         # load the image and the labels
-        X, y = list(zip(*[self.uploader(img, tar) for img, tar in zip(self.img_paths[idxs], self.tar_paths[idxs])]))
+        X, y = self.uploader(self.img_paths[idx], self.tar_paths[idx])#list(zip(*[self.uploader(img, tar) for img, tar in zip(self.img_paths[idxs], self.tar_paths[idxs])]))
         X = np.asarray(X)
         y = np.asarray(y)
 
