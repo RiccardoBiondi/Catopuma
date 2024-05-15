@@ -5,6 +5,7 @@ from typing import Iterable, NoReturn, Tuple, List
 
 from catopuma.core.__framework import _FRAMEWORK_NAME
 from catopuma.core.__framework import _FRAMEWORK_BASE
+from catopuma.core.__framework import _DATA_FORMAT
 from catopuma.core._padding_functions import get_padding_values_for_strides
 from catopuma.core._padding_functions import pad_tensor
 
@@ -89,7 +90,7 @@ class PatchPredict:
     Or, on torch framework:
 
     >>> import os
-    >>> os.
+    >>> os.environ['CATOPUMA_FRAMEWORK'] = 'torch'
     >>> import torch
     >>> import catopuma
     >>> from catopuma.prediction_loops import PatchPredict
@@ -118,7 +119,7 @@ class PatchPredict:
                  strides: Iterable[int],
                  padding: str = "valid",
                  unpad: bool = True,
-                 data_format: str = 'channels_last'):
+                 data_format: str = _DATA_FORMAT):
         """
         """
 
@@ -331,12 +332,9 @@ class PatchPredict:
 
         # compute the number of patches in each direction
         n_patches = [int((d - p) / s) + 1 for d, p, s in zip(padded_tensor_shape, self.patch_size, self.strides)]
-        print(n_patches)
 
         # for each direction create the range of values
         ranges = [np.arange(0, n_patch, 1) for n_patch in n_patches]
-
-
         # now create the mesh grid to use to compute the patches coordinates
         indexes = np.meshgrid(*ranges, indexing="ij")
 
@@ -378,10 +376,10 @@ class PatchPredict:
         input_ = padded_tensor[slices]
 
         # add a fucntion to make the prediction
-        res = self.model.predict(input_)
+        res = self.model(input_)
         # update also the mask and the prediction
-        self.mask[slices] += 1#self.mask[slices] + 1
-        self.pred[slices] = self.pred[slices] + res
+        self.mask[slices] += 1
+        self.pred[slices] += res
 
 
     def _unpad_values(self, pad_values: Tuple[int]) -> Tuple[int]:
@@ -444,14 +442,19 @@ class PatchPredict:
         """
         # first of all add the batch dimension at the beginning of the image
         # to make it managable by the prediction (forward) method of tensorflow (pytorch)
+
+        # TODO: Decompose this function in many other functions to 
+        # imporve code redability and generalizability
         X = add_batch_axis(X)
 
         # get the image shape and drop the channel one
         array_shape = np.asarray(X.shape)
+
+        # TODO: consider to move this step at the beginning of the function, 
+        # to remove the needing of the _drop_batch_index call
         tensor_shape = self._drop_batch_index(array_shape)
         tensor_shape = self._drop_channel_index(tensor_shape)
         # get the eventual padding dimensions
-
         pad_values = get_padding_values_for_strides(array_shape=tensor_shape, patch_size=self.patch_size,
                                                     strides=self.strides, padding=self._padding)
 
@@ -462,8 +465,8 @@ class PatchPredict:
         # make the zero valued array for the prediction
         # and the mask to normalize the array
         # TODO: find a way to handel also the multichannel outputs
-        self.pred = np.zeros(shape=padded_tensor.shape)
-        self.mask = np.zeros(shape=padded_tensor.shape)
+        self.pred =  _FRAMEWORK_BASE.zeros(padded_tensor.shape)
+        self.mask =  _FRAMEWORK_BASE.zeros(padded_tensor.shape)
 
         # now compute the number of patches and the patch corners
         top_corners, bottom_corners = self._get_patch_coords(padded_tensor_shape)
@@ -480,12 +483,6 @@ class PatchPredict:
             self.pred = self._unpad_tensor(self.pred, unpad_vals)
 
         # finally return the result
+        # TODO: Consider also to return the result without the batch dimension, which is needed only for the prediction
 
         return self.pred
-
-
-
-
-
-if __name__ == '__main__':
-    main()
