@@ -9,6 +9,7 @@ and return a floating point value, corresponding to the metric value.
 import numpy as np
 import catopuma
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
+from catopuma.core.__framework import _DATA_FORMAT
 from typing import Optional, List, Tuple, Dict, NoReturn, Union
 
 from catopuma.core._base_functions import get_reduce_axes, average, gather_channels
@@ -20,7 +21,7 @@ __all__ = ['f_score', 'tversky_score']
 
 def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
             class_weights: Union[List[float], float] = 1.,  indexes: List[int] = None,
-            per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last'):
+            per_image: bool = False, per_channel: bool = False, data_format: str = _DATA_FORMAT):
     '''
     Function to compute the f1 score between y_true and y_pred using the keras backend.
     The computation includes also a smoothing to avoid Nan's and Inf's.
@@ -94,8 +95,8 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
 
 
 def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: float = 1e-5,
-                  class_weights: Union[List[float], float] = 1., indexes: List[int] = None,
-                  per_channel: bool = False, per_image: bool = False, data_format: str = 'channels_last'):
+                    class_weights: Union[List[float], float] = 1., indexes: List[int] = None,
+                    per_channel: bool = False, per_image: bool = False, data_format: str = _DATA_FORMAT):
     '''
     Function to compute the twersky metric . It will be a floating point value in [0., 1.].
     This function allows to chose the conribution of precision and recall in loss computation, 
