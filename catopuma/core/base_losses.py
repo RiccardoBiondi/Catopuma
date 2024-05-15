@@ -130,7 +130,7 @@ class BaseLoss(ABC):
             the sum of the two losses.
         '''
         
-        return LossSum(self, other)
+        return LossSum(other, self)
 
     def __sub__(self, other: Union[Self, float]) -> Self:
         '''
@@ -146,6 +146,7 @@ class BaseLoss(ABC):
         Self
             the subtraction of the two losses.
         '''
+        # FIXME flipp the sign (or the one or rsub)
         
         return LossSubtract(self, other)
 
@@ -163,8 +164,8 @@ class BaseLoss(ABC):
         Self
             the subtraction of the two losses.
         '''
-        
-        return LossSubtract(self, other)
+        # FIXME flipp the sign (or the one of sub)
+        return LossSubtract(other, self)
 
     def __mul__(self, other: Union[Self, float]) -> Self:
         '''
@@ -198,7 +199,7 @@ class BaseLoss(ABC):
             the product of the two losses.
         '''
 
-        return LossMultiply(self, other)
+        return LossMultiply(other, self)
 
     def __truediv__(self, other: Union[Self, float]) -> Self:
         '''
@@ -214,7 +215,7 @@ class BaseLoss(ABC):
         Self
             the division of the two losses.
         '''
-
+        # FIXME is it correct?
         return LossDivide(self, other)
 
     def __rtruediv__(self, other: Union[Self, float]) -> Self:
@@ -231,8 +232,8 @@ class BaseLoss(ABC):
         Self
             the division of the two losses.
         '''
-
-        return LossDivide(self, other)
+        # FIXME is it correct?
+        return LossDivide(other, self)
 
     def __pow__(self, other: Union[Self, float]) -> Self:
         '''
@@ -248,7 +249,7 @@ class BaseLoss(ABC):
         Self
             the power of the two losses.
         '''
-
+        # FIXME is it correct?
         return LossPow(self, other)
 
     def __rpow__(self, other: Union[Self, float]) -> Self:
@@ -265,8 +266,8 @@ class BaseLoss(ABC):
         Self
             the power of the two losses.
         '''
-
-        return LossPow(self, other)
+        # FIXME is it correct?
+        return LossPow(other, self)
     
     def __neg__(self) -> Self:
         '''
@@ -279,7 +280,7 @@ class BaseLoss(ABC):
              -1. * loss value.
         '''
 
-        return LossMultiply(self, -1.)
+        return LossMultiply(-1., self)
 
 
 class LossSum(BaseLoss):
@@ -288,15 +289,15 @@ class LossSum(BaseLoss):
 
     def __init__(self, loss_1: BaseLoss, loss_2: Union[BaseLoss, float]):
 
-        if isinstance(loss_2, BaseLoss):
-
+        if isinstance(loss_1, BaseLoss) & isinstance(loss_2, BaseLoss):
             name =  f'{loss_1.__name__}_plus_{loss_2.__name__}'
-        elif isinstance(loss_2, float):
-
+        elif isinstance(loss_1, BaseLoss) & isinstance(loss_2, float):
             name = f'{loss_1.__name__}_plus_{loss_2}'
+        elif isinstance(loss_2, BaseLoss) & isinstance(loss_1, float):
+            name = f'{loss_1}_plus_{loss_2.__name__}'
         else:
             raise ValueError()
-        
+
         super().__init__(name=name)
         self.loss_1 = loss_1
         self.loss_2 = loss_2
@@ -305,19 +306,23 @@ class LossSum(BaseLoss):
         '''
         '''
 
-        if isinstance(self.loss_2, BaseLoss):
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
             return self.loss_1(y_true=y_true, y_pred=y_pred) + self.loss_2(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1(y_true=y_true, y_pred=y_pred) + self.loss_2
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) + self.loss_2
+        else:
+            return self.loss_1 + self.loss_2(y_true=y_true, y_pred=y_pred)
 
     def forward(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         '''
         '''
 
-        if isinstance(self.loss_2, BaseLoss):
-            return self.loss_1.forward(y_true=y_true, y_pred=y_pred) + self.loss_2.forward(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1.forward(y_true=y_true, y_pred=y_pred) + self.loss_2
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) + self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) + self.loss_2
+        else:
+            return self.loss_1 + self.loss_2(y_true=y_true, y_pred=y_pred)
 
 
 
@@ -327,15 +332,16 @@ class LossSubtract(BaseLoss):
 
     def __init__(self, loss_1: BaseLoss, loss_2: Union[BaseLoss, float]):
 
-        if isinstance(loss_2, BaseLoss):
-
+        if isinstance(loss_1, BaseLoss) & isinstance(loss_2, BaseLoss):
             name =  f'{loss_1.__name__}_minus_{loss_2.__name__}'
-        elif isinstance(loss_2, float):
 
+        elif isinstance(loss_1, BaseLoss) & isinstance(loss_2, float):
             name = f'{loss_1.__name__}_minus_{loss_2}'
+        elif isinstance(loss_2, BaseLoss) & isinstance(loss_1, float):
+            name = f'{loss_1}_minus_{loss_2.__name__}'
         else:
             raise ValueError()
-        
+
         super().__init__(name=name)
         self.loss_1 = loss_1
         self.loss_2 = loss_2
@@ -345,20 +351,24 @@ class LossSubtract(BaseLoss):
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         '''
         '''
-
-        if isinstance(self.loss_2, BaseLoss):
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
             return self.loss_1(y_true=y_true, y_pred=y_pred) - self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) - self.loss_2
+        else:
+            return self.loss_1 - self.loss_2(y_true=y_true, y_pred=y_pred)
         
-        return self.loss_1(y_true=y_true, y_pred=y_pred) - self.loss_2
+        
     
     def forward(self, y_true, y_pred) -> float:
         '''
         '''
-        
-        if isinstance(self.loss_2, BaseLoss):
-            return self.loss_1.forward(y_true=y_true, y_pred=y_pred) - self.loss_2.forward(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1.forward(y_true=y_true, y_pred=y_pred) - self.loss_2
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) - self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) - self.loss_2
+        else:
+            return self.loss_1 - self.loss_2(y_true=y_true, y_pred=y_pred)
 
 
 class LossMultiply(BaseLoss):
@@ -367,66 +377,76 @@ class LossMultiply(BaseLoss):
 
     def __init__(self, loss_1: BaseLoss, loss_2: Union[BaseLoss, float]):
         
-        if isinstance(loss_2, BaseLoss):
-            name = f'({loss_1.__name__})_times_({loss_2.__name__})'
-        elif isinstance(loss_2, float):
-            name = f'{loss_2}_times_{loss_1.__name__}'
+        if isinstance(loss_1, BaseLoss) & isinstance(loss_2, BaseLoss):
+            name =  f'{loss_1.__name__}_times_{loss_2.__name__}'
+        elif isinstance(loss_1, BaseLoss) & isinstance(loss_2, float):
+            name = f'{loss_1.__name__}_times_{loss_2}'
+        elif isinstance(loss_2, BaseLoss) & isinstance(loss_1, float):
+            name = f'{loss_1}_times_{loss_2.__name__}'
         else:
             raise ValueError()
-        
+
         super().__init__(name=name)
         self.loss_1 = loss_1
         self.loss_2 = loss_2
 
 
     def __call__(self, y_true, y_pred) -> float:
-        
-        if isinstance(self.loss_2, BaseLoss):
-            return self.loss_1(y_true=y_true, y_pred=y_pred) * self.loss_2(y_true=y_true, y_pred=y_pred)
-        return self.loss_1(y_true=y_true, y_pred=y_pred) * self.loss_2
 
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) * self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) * self.loss_2
+        else:
+            return self.loss_1 * self.loss_2(y_true=y_true, y_pred=y_pred)
 
     def forward(self, y_true, y_pred):
         '''
         '''
-        if isinstance(self.loss_2, BaseLoss):
-            return self.loss_1.forward(y_true=y_true, y_pred=y_pred) * self.loss_2.forward(y_true=y_true, y_pred=y_pred)
-        return self.loss_1.forward(y_true=y_true, y_pred=y_pred) * self.loss_2
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) * self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) * self.loss_2
+        else:
+            return self.loss_1 * self.loss_2(y_true=y_true, y_pred=y_pred)
 
 
 class LossDivide(BaseLoss):
     '''
     '''
-
+    # TODO add division by zero check 
     def __init__(self, loss_1: BaseLoss, loss_2: Union[BaseLoss, float]):
-        
-        if isinstance(loss_2, BaseLoss):
-            name = f'({loss_1.__name__})_divided_by_({loss_2.__name__})'
-        elif isinstance(loss_2, float):
-            name = f'({loss_1.__name__})_divided_by_{loss_2}'
+
+        if isinstance(loss_1, BaseLoss) & isinstance(loss_2, BaseLoss):
+            name =  f'{loss_1.__name__}_divided_by_{loss_2.__name__}'
+        elif isinstance(loss_1, BaseLoss) & isinstance(loss_2, float):
+            name = f'{loss_1.__name__}_divided_by_{loss_2}'
+        elif isinstance(loss_2, BaseLoss) & isinstance(loss_1, float):
+            name = f'{loss_1}_divided_by_{loss_2.__name__}'
         else:
             raise ValueError()
-        
+
         super().__init__(name=name)
         self.loss_1 = loss_1
         self.loss_2 = loss_2
 
     def __call__(self, y_true, y_pred) -> float:
         
-        if isinstance(self.loss_2, BaseLoss):
-
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
             return self.loss_1(y_true=y_true, y_pred=y_pred) / self.loss_2(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1(y_true=y_true, y_pred=y_pred) / self.loss_2
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) / self.loss_2
+        else:
+            return self.loss_1 / self.loss_2(y_true=y_true, y_pred=y_pred)
 
     def forward(self, y_true, y_pred) -> float:
         
-        if isinstance(self.loss_2, BaseLoss):
-
-            return self.loss_1.forward(y_true=y_true, y_pred=y_pred) / self.loss_2.forward(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1.forward(y_true=y_true, y_pred=y_pred) / self.loss_2
-
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) / self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) / self.loss_2
+        else:
+            return self.loss_1 / self.loss_2(y_true=y_true, y_pred=y_pred)
 
 class LossPow(BaseLoss):
     '''
@@ -441,13 +461,16 @@ class LossPow(BaseLoss):
     '''
 
     def __init__(self, loss_1: BaseLoss, loss_2: Union[BaseLoss, float]):
-        
-        if isinstance(loss_2, BaseLoss):
-            name = f'({loss_1.__name__})^({loss_2.__name__})'
-        elif isinstance(loss_2, float):
-            name = f'({loss_1.__name__})^{loss_2}'
+
+        if isinstance(loss_1, BaseLoss) & isinstance(loss_2, BaseLoss):
+            name =  f'({loss_1.__name__})^({loss_2.__name__})'
+        elif isinstance(loss_1, BaseLoss) & isinstance(loss_2, float):
+            name = f'({loss_1.__name__})^({loss_2})'
+        elif isinstance(loss_2, BaseLoss) & isinstance(loss_1, float):
+            name = f'({loss_1})^({loss_2.__name__})'
         else:
             raise ValueError()
+
         super().__init__(name=name)
         self.loss_1 = loss_1
         self.loss_2 = loss_2
@@ -457,19 +480,21 @@ class LossPow(BaseLoss):
         Compute the sum between the two losses.
 
         '''
-        if isinstance(self.loss_2, BaseLoss):
-
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
             return self.loss_1(y_true=y_true, y_pred=y_pred) ** self.loss_2(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1(y_true=y_true, y_pred=y_pred) ** self.loss_2
-    
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) ** self.loss_2
+        else:
+            return self.loss_1 ** self.loss_2(y_true=y_true, y_pred=y_pred)
+
     def forward(self, y_true, y_pred):
         '''
         Compute the sum between the two losses.
 
         '''
-        if isinstance(self.loss_2, BaseLoss):
-
-            return self.loss_1.forward(y_true=y_true, y_pred=y_pred) ** self.loss_2.forward(y_true=y_true, y_pred=y_pred)
-        
-        return self.loss_1.forward(y_true=y_true, y_pred=y_pred) ** self.loss_2
+        if isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, BaseLoss):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) ** self.loss_2(y_true=y_true, y_pred=y_pred)
+        elif isinstance(self.loss_1, BaseLoss) & isinstance(self.loss_2, float):
+            return self.loss_1(y_true=y_true, y_pred=y_pred) ** self.loss_2
+        else:
+            return self.loss_1 ** self.loss_2(y_true=y_true, y_pred=y_pred)
