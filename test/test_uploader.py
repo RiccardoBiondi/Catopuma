@@ -62,113 +62,119 @@ def test_simple_itk_uploader_raise_value_error(data_format: str):
     with pytest.raises(ValueError):
         loader = SimpleITKUploader(data_format=data_format)
 
-
-def  test_simple_itk_uploader_correct_output_tuple_lenght():
+@given(st.integers(1, 5))
+def  test_simple_itk_uploader_correct_output_tuple_lenght(n_images):
     '''
     Check that the call method return a tuple of len 2, representing the input and 
     the target images
 
-    Given:  
-        - No argument is required
+    Given: 
+        - number of input images
     Then:
         - init SimpleITKUploader
         - call the uploader providing a valid image and target paths
     Assert:
         - the returned tuple has len == 2
     '''
-
+    imgs = n_images * ['test/test_images/test_image.nii']
     loader = SimpleITKUploader()
 
-    samples = loader('test/test_images/test_image.nii', 'test/test_images/test_target.nii')
+    samples = loader(*imgs, 'test/test_images/test_target.nii')
     
     assert len(samples) == 2
 
-
-def test_simple_itk_uploader_channels_last_2d__correct_output_shape():
+@given(st.integers(1, 5))
+def test_simple_itk_uploader_channels_last_2d__correct_output_shape(n_images):
     '''
     Check that the red images have the correct shape, coherent with the channels_last 
     data format
 
     Given:
-        - no argument is required
+        - number of input images
     Then:
         - init the  SimpleITKUploader
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (64, 64, 1)
+        - image shape is (64, 64, n_images)
+        - target shape is (64, 64, 1)
     '''
-    
+    imgs = n_images * ['test/test_images/test_image.nii']
     loader = SimpleITKUploader()
 
-    X, y = loader('test/test_images/test_image.nii', 'test/test_images/test_target.nii')
+    X, y = loader(*imgs, 'test/test_images/test_target.nii')
 
-    assert X.shape == (64, 64, 1)
+    assert X.shape == (64, 64, n_images)
     assert y.shape == (64, 64, 1)
 
 
-def test_simple_itk_uploader_channels_first_2d_correct_output_shape():
+@given(st.integers(1, 5))
+def test_simple_itk_uploader_channels_first_2d_correct_output_shape(n_images):
     '''
     Check that the red images have the correct shape, coherent with the channels_first 
     data format
 
     Given:
-        - no argument is required
+        - number of input images
     Then:
         - init the  SimpleITKUploader with channels_first as data_format
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (1, 64, 64)
+        - image is (n_images, 64, 64)
+        - target shape is (1, 64, 64)
     '''
-    
+    imgs = n_images * ['test/test_images/test_image.nii']
     loader = SimpleITKUploader(data_format='channels_first')
 
-    X, y = loader('test/test_images/test_image.nii', 'test/test_images/test_target.nii')
+    X, y = loader(*imgs, 'test/test_images/test_target.nii')
 
-    assert X.shape == (1, 64, 64)
+    assert X.shape == (n_images, 64, 64)
     assert y.shape == (1, 64, 64)
 
 
-def test_simple_itk_uploader_channels_last_3d__correct_output_shape():
+@given(st.integers(1, 5))
+def test_simple_itk_uploader_channels_last_3d__correct_output_shape(n_volumes):
     '''
     Check that the red volume have the correct shape, coherent with the channels_last 
     data format
 
     Given:
-        - no argument is required
+        - number of input volume
     Then:
         - init the  SimpleITKUploader
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (64, 64, 64, 1)
+        - volume shape is (64, 64, 64, n_volumes)
+        - target shape is (64, 64, 64, 1)
     '''
-    
+    vols = n_volumes * ['test/test_images/test_volume.nii']
     loader = SimpleITKUploader()
 
-    X, y = loader('test/test_images/test_volume.nii', 'test/test_images/test_volume_target.nii')
+    X, y = loader(*vols, 'test/test_images/test_volume_target.nii')
 
-    assert X.shape == (64, 64, 64, 1)
+    assert X.shape == (64, 64, 64, n_volumes)
     assert y.shape == (64, 64, 64, 1)
 
-
-def test_simple_itk_uploader_channels_first_3d_correct_output_shape():
+@given(st.integers(1, 5))
+def test_simple_itk_uploader_channels_first_3d_correct_output_shape(n_volumes):
     '''
     Check that the red volume have the correct shape, coherent with the channels_first 
     data format
 
     Given:
-        - no argument is required
+        - number of input volume
     Then:
         - init the  SimpleITKUploader with channels_first as data_format
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (1, 64, 64, 64)
+        - volume shape is (n_volumes, 64, 64, 64)
+        - target shape is (1, 64, 64, 64)
     '''
-    
+    vols = n_volumes * ['test/test_images/test_volume.nii']
     loader = SimpleITKUploader(data_format='channels_first')
 
-    X, y = loader('test/test_images/test_volume.nii', 'test/test_images/test_volume_target.nii')
+    X, y = loader(*vols, 'test/test_images/test_volume_target.nii')
 
-    assert X.shape == (1, 64, 64, 64)
+    assert X.shape == (n_volumes, 64, 64, 64)
     assert y.shape == (1, 64, 64, 64)
 
 

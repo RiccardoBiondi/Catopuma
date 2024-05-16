@@ -43,10 +43,10 @@ def get_dummy_model():
         def __init__(self):
             super(DummyModel, self).__init__()
 
-            self.activation = F.nn.ReLU()
+            self.identity = F.nn.Identity()
 
         def forward(self, x):
-            x = self.activation(x)            
+            x = self.identity(x)            
             return x
 
     dummymodel = DummyModel()
@@ -354,8 +354,8 @@ def test_unpadded_prediction_equal_input_for_identity_model(image_dim, strides, 
     model = get_dummy_model()
     # and meke the prediction
     with PatchPredict(model=model, strides=strides_, patch_size=patch_size_, padding='same', unpad=True) as pp:
-        pred = pp.predict_from_tensor(sample)
+        pred = pp.predict_from_tensor(sample)   
 
     # remove the batch dimension from the prediction
-    #pred = pred[0]
+    pred = pred[0]
     assert np.all(np.isclose(pred, sample))
