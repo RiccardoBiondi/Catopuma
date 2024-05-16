@@ -38,16 +38,11 @@ class SimpleITKUploader(UploaderBase):
         else:
             raise ValueError(f'{data_format} is not allowed. Allowed data formats:  {self.EXPANSION_AXIS.keys()}')
 
-    def __call__(self, *path: Tuple[str]) -> Tuple[np.ndarray]:
+    def __call__(self, *paths: str) -> Tuple[np.ndarray]:
         '''
         '''
-        img_path = path[0]
-        tar_path = path[1]
-
-        if isinstance(img_path, str):
-            # if I have ony a single image, convert the single path to a list with a single path,
-            # to handle with a single code both the single channel and the multichannel case
-            img_path = [img_path]
+        img_path = paths[:-1]
+        tar_path = paths[-1]
         
         imgs = []
         for i in img_path:
@@ -57,7 +52,7 @@ class SimpleITKUploader(UploaderBase):
             imgs.append(im)
 
         img = np.concatenate(imgs, axis=self.EXPANSION_AXIS[self.data_format])
-        tar = sitk.ReadImage(path[1]) # target path must be second
+        tar = sitk.ReadImage(tar_path)
         tar = sitk.GetArrayFromImage(tar)
         tar = np.expand_dims(tar, axis=self.EXPANSION_AXIS[self.data_format])
 
