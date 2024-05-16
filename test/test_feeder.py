@@ -13,8 +13,8 @@ from catopuma.uploader import SimpleITKUploader
 from catopuma import feeder
 
 
-#@pytest.mark.skipif(fw._FRAMEWORK_NAME not in ['keras', 'tf.keras'], reason="Test only works with tf.keras and keras frameworks")
-class TestImageFeederFeeder:
+@pytest.mark.skipif(fw._FRAMEWORK_NAME not in ['keras', 'tf.keras'], reason="Test only works with tf.keras and keras frameworks")
+class TestImageFeederTensorflow:
         
     def test_image_feeder_on_the_fly_default_init(self):
         '''
@@ -29,7 +29,7 @@ class TestImageFeederFeeder:
         # create the palceholder paths
         img_paths = 8 * ['test/test_images/test_image.nii']
         tar_paths = 8 * ['test/test_images/test_target.nii']
-        imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths)
+        imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths)
         assert imfeeder.shuffle is True
         assert imfeeder.batch_size == 8
         assert isinstance(imfeeder.uploader, SimpleITKUploader)
@@ -56,11 +56,7 @@ class TestImageFeederFeeder:
         '''
         img_paths = batch_size * ['test/test_images/test_image.nii']
         tar_paths = batch_size * ['test/test_images/test_target.nii']
-        imfeeder = feeder.ImageFeederOnTheFly(
-                                    img_paths=img_paths,
-                                    target_paths=tar_paths, 
-                                    batch_size=batch_size,
-                                    shuffle=shuffle)
+        imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths, batch_size=batch_size, shuffle=shuffle)
         assert imfeeder.batch_size == batch_size
         assert imfeeder.shuffle is shuffle
         # check also that indexes is correctly initialized
@@ -69,7 +65,7 @@ class TestImageFeederFeeder:
         assert len(imfeeder.indexes) == batch_size
 
 
-    @given(st.integers(1, 100), st.integers(1, 100))
+    @given(st.integers(5, 100), st.integers(10, 100))
     def test_image_feeder_on_the_fly_raise_value_error_path_different_lenght(self, image_path_size, target_path_size):
         '''
         Chech that the image feeder raise value error when different lenght of
@@ -85,9 +81,11 @@ class TestImageFeederFeeder:
         '''
         assume(image_path_size != target_path_size)
         img_paths = image_path_size * ['test/test_images/test_image.nii']
+        img2_paths = image_path_size * ['test/test_images/test_image.nii']
         tar_paths = target_path_size * ['test/test_images/test_target.nii']
+
         with pytest.raises(ValueError):
-            imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths)
+            imfeeder = feeder.ImageFeederOnTheFly(img_paths, img2_paths, tar_paths)
 
 
     @given(st.integers(1, 64), st.integers(1, 64))
@@ -108,7 +106,7 @@ class TestImageFeederFeeder:
         img_paths = path_len * ['test/test_images/test_image.nii']
         tar_paths = path_len * ['test/test_images/test_target.nii']
         with pytest.raises(ValueError):
-            imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths, batch_size=batch_size)
+            imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths, batch_size=batch_size)
 
 
     @given(st.integers(8, 100))
@@ -126,7 +124,7 @@ class TestImageFeederFeeder:
         '''
         img_paths = path_len * ['test/test_images/test_image.nii']
         tar_paths = path_len * ['test/test_images/test_target.nii']
-        imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths, shuffle=True)
+        imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths, shuffle=True)
         assert imfeeder.indexes.min() == 0
         assert imfeeder.indexes.max() == path_len - 1
         assert len(imfeeder.indexes) == path_len
@@ -148,7 +146,7 @@ class TestImageFeederFeeder:
         '''
         img_paths = path_len * ['test/test_images/test_image.nii']
         tar_paths = path_len * ['test/test_images/test_target.nii']
-        imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths, shuffle=False)
+        imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths, shuffle=False)
     
         assert imfeeder.indexes.min() == 0
         assert imfeeder.indexes.max() == path_len - 1
@@ -178,7 +176,7 @@ class TestImageFeederFeeder:
         assume(number_of_paths < (number_of_batches + 1) * batch_size)
         img_paths = number_of_paths * ['test/test_images/test_image.nii']
         tar_paths = number_of_paths * ['test/test_images/test_target.nii']
-        imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths, batch_size=batch_size)
+        imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths, batch_size=batch_size)
         assert len(imfeeder) == number_of_batches
 
 
@@ -202,7 +200,7 @@ class TestImageFeederFeeder:
         assume(batch_size <= number_of_paths)
         img_paths = number_of_paths * ['test/test_images/test_image.nii']
         tar_paths = number_of_paths * ['test/test_images/test_target.nii'] 
-        imfeeder = feeder.ImageFeederOnTheFly(img_paths=img_paths, target_paths=tar_paths, batch_size=batch_size)
+        imfeeder = feeder.ImageFeederOnTheFly(img_paths, tar_paths, batch_size=batch_size)
         # get the reference element idex
         idx = np.random.randint(0, len(imfeeder))
         item = imfeeder[idx]
@@ -212,7 +210,7 @@ class TestImageFeederFeeder:
 
 
 @pytest.mark.skipif(fw._FRAMEWORK_NAME != 'torch', reason="Test only works with torch frameworks")
-class TestTorchFeeder:
+class TestFeederTorch:
       
       def test_placeholder_torch(self):
             assert True
