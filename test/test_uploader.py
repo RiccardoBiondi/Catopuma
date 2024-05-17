@@ -5,6 +5,9 @@ from hypothesis import given, settings, assume
 import numpy as np
 from catopuma.uploader import SimpleITKUploader
 from catopuma.uploader import LazyPatchBaseUploader
+
+from catopuma.core.__framework import _DATA_FORMAT
+
 ALLOWED_DATA_FORMATS =   ('channels_first', 'channels_last')
 
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'), min_codepoint=65, max_codepoint=90)
@@ -24,7 +27,7 @@ def test_simple_itk_uploader_default_init():
 
     loader = SimpleITKUploader()
 
-    assert loader.data_format == 'channels_last'
+    assert loader.data_format == _DATA_FORMAT
 
 
 @given(st.sampled_from(ALLOWED_DATA_FORMATS))
@@ -63,6 +66,7 @@ def test_simple_itk_uploader_raise_value_error(data_format: str):
         loader = SimpleITKUploader(data_format=data_format)
 
 @given(st.integers(1, 5))
+@settings(max_examples=10, deadline=None)
 def  test_simple_itk_uploader_correct_output_tuple_lenght(n_images):
     '''
     Check that the call method return a tuple of len 2, representing the input and 
@@ -84,6 +88,7 @@ def  test_simple_itk_uploader_correct_output_tuple_lenght(n_images):
     assert len(samples) == 2
 
 @given(st.integers(1, 5))
+@settings(max_examples=10, deadline=None)
 def test_simple_itk_uploader_channels_last_2d__correct_output_shape(n_images):
     '''
     Check that the red images have the correct shape, coherent with the channels_last 
@@ -99,7 +104,7 @@ def test_simple_itk_uploader_channels_last_2d__correct_output_shape(n_images):
         - target shape is (64, 64, 1)
     '''
     imgs = n_images * ['test/test_images/test_image.nii']
-    loader = SimpleITKUploader()
+    loader = SimpleITKUploader(data_format='channels_last')
 
     X, y = loader(*imgs, 'test/test_images/test_target.nii')
 
@@ -108,6 +113,7 @@ def test_simple_itk_uploader_channels_last_2d__correct_output_shape(n_images):
 
 
 @given(st.integers(1, 5))
+@settings(max_examples=10, deadline=None)
 def test_simple_itk_uploader_channels_first_2d_correct_output_shape(n_images):
     '''
     Check that the red images have the correct shape, coherent with the channels_first 
@@ -132,6 +138,7 @@ def test_simple_itk_uploader_channels_first_2d_correct_output_shape(n_images):
 
 
 @given(st.integers(1, 5))
+@settings(max_examples=10, deadline=None)
 def test_simple_itk_uploader_channels_last_3d__correct_output_shape(n_volumes):
     '''
     Check that the red volume have the correct shape, coherent with the channels_last 
@@ -147,7 +154,7 @@ def test_simple_itk_uploader_channels_last_3d__correct_output_shape(n_volumes):
         - target shape is (64, 64, 64, 1)
     '''
     vols = n_volumes * ['test/test_images/test_volume.nii']
-    loader = SimpleITKUploader()
+    loader = SimpleITKUploader(data_format='channels_last')
 
     X, y = loader(*vols, 'test/test_images/test_volume_target.nii')
 
@@ -155,6 +162,7 @@ def test_simple_itk_uploader_channels_last_3d__correct_output_shape(n_volumes):
     assert y.shape == (64, 64, 64, 1)
 
 @given(st.integers(1, 5))
+@settings(max_examples=10, deadline=None)
 def test_simple_itk_uploader_channels_first_3d_correct_output_shape(n_volumes):
     '''
     Check that the red volume have the correct shape, coherent with the channels_first 
@@ -192,7 +200,7 @@ def test_lazy_patch_base_uploader_default_init():
 
     loader = LazyPatchBaseUploader((16, 16))
 
-    assert loader.data_format == 'channels_last'
+    assert loader.data_format == _DATA_FORMAT
     assert loader.threshold == -1
 
 
@@ -256,7 +264,7 @@ def test_lazy_patch_base_uploader_check_consistency_patch_outside_image_raise_va
     pc_size = dimension * [patch_size]
 
 
-    loader = LazyPatchBaseUploader(patch_size=pc_size)
+    loader = LazyPatchBaseUploader(patch_size=pc_size, data_format=_DATA_FORMAT)
 
     with pytest.raises(ValueError):
 
@@ -285,7 +293,7 @@ def test_lazy_patch_base_uploader_check_consistency_mismatch_dimension_raise_val
     patch_size = patch_dim * [16]
     image_size = image_dim * [64]
 
-    loader = LazyPatchBaseUploader(patch_size=patch_size)
+    loader = LazyPatchBaseUploader(patch_size=patch_size, data_format=_DATA_FORMAT)
 
     with pytest.raises(ValueError):
         _ = loader._checkConsistency(image_size=image_size)
@@ -346,97 +354,106 @@ def test_lazy_patch_base_uploader_sample_patch_origin_is_in_image(dimensions, pa
     assert np.all(np.asarray(upper_index) < np.asarray(image_size))
 
 
-@given(st.integers(4, 16))
+@given(st.integers(4, 16), st.integers(1, 5))
 @settings(max_examples=10, deadline=None)
-def test_lazy_patch_base_uploader_channels_last_2d_correct_output_shape(patch_size):
+def test_lazy_patch_base_uploader_channels_last_2d_correct_output_shape(patch_size, n_images):
     '''
     Check that the red images have the correct shape, coherent with the channels_last 
     data format and the specified patch size
 
     Given:
         - patch_size
+        - number of input images
     Then:
         - init the  LazyPatchBaseUploader
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (patch_size, 1)
-    '''
-    
-    loader = LazyPatchBaseUploader(patch_size=(patch_size, patch_size))
+        - image shape is (patch_size, n_images)
+        - target shape is (patch_size, 1)
+        '''
+    imgs = n_images * ['test/test_images/test_image.nii']
+    loader = LazyPatchBaseUploader(patch_size=(patch_size, patch_size), data_format='channels_last')
 
-    X, y = loader('test/test_images/test_image.nii', 'test/test_images/test_target.nii')
+    X, y = loader(*imgs, 'test/test_images/test_target.nii')
 
-    assert X.shape == (patch_size, patch_size, 1)
+    assert X.shape == (patch_size, patch_size, n_images)
     assert y.shape == (patch_size, patch_size, 1)
 
 
-@given(st.integers(4, 16))
+@given(st.integers(4, 16), st.integers(1, 5))
 @settings(max_examples=10, deadline=None)
-def test_lazy_patch_base_uploader_channels_first_2d_correct_output_shape(patch_size):
+def test_lazy_patch_base_uploader_channels_first_2d_correct_output_shape(patch_size,  n_images):
     '''
     Check that the red images have the correct shape, coherent with the channels_first 
     data formatand the specified patch size
 
     Given:
         - patch_size
+        - number of input images
     Then:
         - init the  LazyPatchBaseUploader with channels_first as data_format
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (1, patch_size)
-    '''
-    
+        - image shape is (n_images, patch_size)
+        - target shape is (1, patch_size)
+            '''
+    imgs = n_images * ['test/test_images/test_image.nii']
     loader = LazyPatchBaseUploader(patch_size=(patch_size, patch_size), data_format='channels_first')
 
-    X, y = loader('test/test_images/test_image.nii', 'test/test_images/test_target.nii')
+    X, y = loader(*imgs, 'test/test_images/test_target.nii')
 
-    assert X.shape == (1, patch_size, patch_size)
+    assert X.shape == (n_images, patch_size, patch_size)
     assert y.shape == (1, patch_size, patch_size)
 
 
-@given(st.integers(4, 16))
+@given(st.integers(4, 16), st.integers(1, 5))
 @settings(max_examples=10, deadline=None)
-def test_lazy_patch_base_uploader_channels_last_3d_correct_output_shape(patch_size):
+def test_lazy_patch_base_uploader_channels_last_3d_correct_output_shape(patch_size, n_volumns):
     '''
     Check that the red volumes have the correct shape, coherent with the channels_last 
     data format and the specified patch size
 
     Given:
         - patch_size
+        - number of input volumes
     Then:
         - init the  LazyPatchBaseUploader
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (patch_size, 1)
-    '''
-    
-    loader = LazyPatchBaseUploader(patch_size=(patch_size, patch_size, patch_size))
+        - image shape is (patch_size, n_volumns)
+        - target shape is (patch_size, 1)
 
-    X, y = loader('test/test_images/test_volume.nii', 'test/test_images/test_volume_target.nii')
+        '''
+    vols = n_volumns * ['test/test_images/test_volume.nii']
+    loader = LazyPatchBaseUploader(patch_size=(patch_size, patch_size, patch_size), data_format='channels_last')
 
-    assert X.shape == (patch_size, patch_size, patch_size, 1)
+    X, y = loader(*vols, 'test/test_images/test_volume_target.nii')
+
+    assert X.shape == (patch_size, patch_size, patch_size, n_volumns)
     assert y.shape == (patch_size, patch_size, patch_size, 1)
 
 
-@given(st.integers(4, 16))
+@given(st.integers(4, 16), st.integers(1, 5))
 @settings(max_examples=10, deadline=None)
-def test_lazy_patch_base_uploader_channels_first_3d_correct_output_shape(patch_size):
+def test_lazy_patch_base_uploader_channels_first_3d_correct_output_shape(patch_size, n_volumns):
     '''
     Check that the red images have the correct shape, coherent with the channels_first 
     data formatand the specified patch size
 
     Given:
         - patch_size
+        - number of input volumes
     Then:
         - init the  LazyPatchBaseUploader with channels_first as data_format
         - call the uploader providing a valid image and target paths
     Assert:
-        - image and target shape are (1, patch_size)
-    '''
-    
+        - image shape is (n_volums, patch_size)
+        - target shape is (1, patch_size)
+        '''
+    vols = n_volumns * ['test/test_images/test_volume.nii']
     loader = LazyPatchBaseUploader(patch_size=(patch_size, patch_size, patch_size), data_format='channels_first')
 
-    X, y = loader('test/test_images/test_volume.nii', 'test/test_images/test_volume_target.nii')
+    X, y = loader(*vols, 'test/test_images/test_volume_target.nii')
 
-    assert X.shape == (1, patch_size, patch_size, patch_size)
+    assert X.shape == (n_volumns, patch_size, patch_size, patch_size)
     assert y.shape == (1, patch_size, patch_size, patch_size)
