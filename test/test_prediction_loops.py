@@ -20,7 +20,7 @@ from catopuma.prediction_loops import PatchPredict
 # create a dummy model to test the class.
 # the model is created according to the used workflow
 
-def get_dummy_model():
+def get_dummy_model(shape=None):
     '''
     Return a simple model according to the selected workflow 
     to test the PatchPredict class.
@@ -32,9 +32,9 @@ def get_dummy_model():
 
     if _FRAMEWORK_NAME in ['keras', 'tf.keras']:
 
-        inputs = F.Inpus(shape=(3,))
-        outputs =  F.layers.Activation('relu')(inputs)
-        model = F.Model(inputs=inputs, outputs=outputs)        
+        inputs = F.Input(shape=shape)
+        outputs =  F.layers.Identity()(inputs)
+        model = F.Model(inputs=inputs, outputs=outputs)
         return model
     
 
@@ -79,7 +79,7 @@ def test_patch_predict_raise_value_error_if_patch_strides_different_shapes(patch
         - value error is raised
     '''
 
-    model = get_dummy_model()
+    model = get_dummy_model((3,))
 
     with pytest.raises(ValueError):
 
@@ -108,7 +108,7 @@ def test_patch_predict_raise_value_error_if_patch_wrong_len(patch_size):
         - value error is raised
     '''
 
-    model = get_dummy_model()
+    model = get_dummy_model((3,))
 
     with pytest.raises(ValueError):
 
@@ -140,7 +140,7 @@ def test_drop_channel_index_channels_last_2d():
     Assert
         - _drop_channel_index return (128, 128)
     """
-    dummy_model = get_dummy_model()
+    dummy_model = get_dummy_model((3,))
     obj = PatchPredict(model=dummy_model, strides=(8, 8), patch_size=((64, 64)), data_format='channels_last')
     
     res = obj._drop_channel_index((128, 128, 3))
@@ -162,7 +162,7 @@ def test_drop_channel_index_channels_last_3d():
     Assert
         - _drop_channel_index return (128, 128, 128)
     """
-    dummy_model = get_dummy_model()
+    dummy_model = get_dummy_model((3,))
     obj = PatchPredict(model=dummy_model, strides=(8, 8, 8), patch_size=((64, 64, 64)), data_format='channels_last')
     
     res = obj._drop_channel_index((128, 128, 128, 3))
@@ -186,7 +186,7 @@ def test_drop_channel_index_channels_first_2d():
     Assert
         - _drop_channel_index return (128, 128)
     """
-    dummy_model = get_dummy_model()
+    dummy_model = get_dummy_model((3,))
     obj = PatchPredict(model=dummy_model, strides=(8, 8), patch_size=((64, 64)), data_format='channels_first')
     
     res = obj._drop_channel_index((3, 128, 128))
@@ -211,7 +211,7 @@ def test_drop_channel_index_channels_first_3d():
     Assert
         - _drop_channel_index return (128, 128, 128)
     """
-    dummy_model = get_dummy_model()
+    dummy_model = get_dummy_model((3,))
     obj = PatchPredict(model=dummy_model, strides=(8, 8, 8), patch_size=((64, 64, 64)), data_format='channels_first')
     
     res = obj._drop_channel_index((3, 128, 128, 128))
@@ -243,7 +243,7 @@ def test_get_patch_coords_bottom_top_coords_equal_shape(shape):
     tensor = tuple(map(lambda x:  64 * 2**x, range(shape)))
     
     # get the dummy model to initialie the object
-    model = get_dummy_model()
+    model = get_dummy_model((3,))
 
     # and finally intialize it
     obj = PatchPredict(model=model, patch_size=patch, strides=strides)
@@ -342,6 +342,8 @@ def test_unpadded_prediction_equal_input_for_identity_model(image_dim, strides, 
         sample = sample[np.newaxis]
     else:
         sample = sample[..., np.newaxis]
+
+    
     # now convert the array to a tensor 
     if _FRAMEWORK_NAME == 'torch':
         sample = F.Tensor(sample)
@@ -351,11 +353,9 @@ def test_unpadded_prediction_equal_input_for_identity_model(image_dim, strides, 
     # now make the prediction
     strides_ = image_dim * [strides]
     patch_size_ = image_dim * [patch_size]
-    model = get_dummy_model()
+    model = get_dummy_model([*patch_size_, 1])
     # and meke the prediction
     with PatchPredict(model=model, strides=strides_, patch_size=patch_size_, padding='same', unpad=True) as pp:
         pred = pp.predict_from_tensor(sample)   
-
     # remove the batch dimension from the prediction
-    pred = pred[0]
-    assert np.all(np.isclose(pred, sample))
+    assert np.all(np.isclose(pred[0], sample))

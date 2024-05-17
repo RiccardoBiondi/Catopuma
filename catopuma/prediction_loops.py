@@ -378,8 +378,10 @@ class PatchPredict:
         # add a fucntion to make the prediction
         res = self.model(input_)
         # update also the mask and the prediction
-        self.mask[slices] += 1
-        self.pred[slices] += res
+        # FIXME I do not work with tensorflow
+
+        self.mask[slices] = self.mask[slices] + 1
+        self.pred[slices] = self.pred[slices] + res
 
 
     def _unpad_values(self, pad_values: Tuple[int]) -> Tuple[int]:
@@ -391,17 +393,19 @@ class PatchPredict:
         
         out_vals = self._drop_batch_index(np.asarray(pad_values))
         out_vals = list(self._drop_channel_index(out_vals))
-
-        # now add the indexes according to the data format
+        residuals = [(up + down) % 2 for up, down in out_vals]
+        out_vals = [[up + res, -down + res] for (up, down), res in zip(out_vals, residuals)]
+        # now add the cahnnel indexes according to the data format
         if self.data_format == 'channels_first':
             out_vals.insert(0, [None, None])
         else:
             out_vals.append([None, None])
+        # and finally add the batch dimension
         out_vals.insert(0, [None, None])
 
         return out_vals
 
-    def _unpad_tensor(self, tensor, pad_values) -> None:
+    def _unpad_tensor(self, tensor, unpad_values) -> None:
         '''
         Unpad the image to make it to the original shape.
 
@@ -410,15 +414,15 @@ class PatchPredict:
         tensor: tensor
             tensor to unpad
 
-        pad_values: Iterable[Iterable[int]]
-            pad values used to pad the tensor in the same modality
+        unpad_values: Iterable[Iterable[int]]
+            unpad values derives from the pad_values used to pad the tensor in the same modality
         
         Return
         ------
         unpadded: tensort
             the unpadded input tensor
         '''
-        slices = tuple([slice(up, -down if down is not None else down) for up, down in pad_values])
+        slices = tuple([slice(up, down) for up, down in unpad_values])
 
         return tensor[slices]
 
