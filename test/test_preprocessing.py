@@ -13,9 +13,10 @@ from catopuma.core._preprocessing_functions import identity
 
 from catopuma.preprocessing import PreProcessing
 from catopuma.preprocessing import SCALER_LUT
+from catopuma.core.__framework import _DATA_FORMAT
 
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'),
-                                 min_codepoint=65, max_codepoint=90)
+                                min_codepoint=65, max_codepoint=90)
 
 text_strategy = st.text(alphabet=legitimate_chars, min_size=1,
                         max_size=15)
@@ -39,21 +40,21 @@ def test_pre_processing_dafault_init():
     preprocess = PreProcessing()
 
 
-    assert preprocess.data_format == 'channels_last'
+    assert preprocess.data_format == _DATA_FORMAT
     assert preprocess.per_channel is False
     assert preprocess.per_image is False
     assert preprocess.standardizer is SCALER_LUT['identity']
-    assert preprocess.target_label == 1
-
+    assert preprocess.target_standardizer is SCALER_LUT['identity']
+    assert preprocess.standardizer_params == {}
+    assert preprocess.target_standardizer_params == {}
 
 @given(
         st.sampled_from(ALLOWED_DATA_FORMATS),
         st.booleans(),
         st.sampled_from(STANDARDIZERS),
-        st.booleans(),
-        st.integers(0, 10))
+        st.booleans())
 def test_pre_processing_init(data_format: str, per_channel: bool,
-                             standardizer: str, per_image: bool, target_label: int):
+                            standardizer: str, per_image: bool):
     '''
     Check the PreProcessing argument is properly initialized
     with the provided argument
@@ -63,7 +64,6 @@ def test_pre_processing_init(data_format: str, per_channel: bool,
         - per_channel flag
         - valid standrdizer string
         - per_image flag
-        - valid target label
     '''
     
     preprocess = PreProcessing(
@@ -71,13 +71,13 @@ def test_pre_processing_init(data_format: str, per_channel: bool,
                             per_channel=per_channel,
                             per_image=per_image,
                             standardizer=standardizer,
-                            target_label=target_label)
+                            target_standardizer=standardizer)
     
     assert preprocess.data_format == data_format
     assert preprocess.per_channel is per_channel
     assert preprocess.per_image is per_image
     assert preprocess.standardizer is SCALER_LUT[standardizer]
-    assert preprocess.target_label == target_label 
+    assert preprocess.target_standardizer is SCALER_LUT[standardizer]
 
 
 @given(text_strategy)

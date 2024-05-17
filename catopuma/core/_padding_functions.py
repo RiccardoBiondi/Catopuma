@@ -88,7 +88,7 @@ def _get_valid_padding_values_for_strides(array_shape: Iterable[int], strides: I
     # or at https://stackoverflow.com/questions/37674306/what-is-the-difference-between-same-and-valid-padding-in-tf-nn-max-pool-of-t
     depth_values = [np.ceil((d - p + 1) / s).astype(np.uint8) for d, p, s in zip(array_shape, patch_size, strides)]
 
-    # once I have computed the numner of patches along each direction, define the starting index
+    # once I have computed the number of patches along each direction, define the starting index
     # and the stop index for each dimensions.
     # The stop index should be lower or equal to the image shape along the specific direction.
     # Up to now the formula I came up with si : strides * depth_values
@@ -135,7 +135,7 @@ def _get_same_padding_values_for_strides(array_shape: Iterable[int], strides: It
     pad_values = [[depth // 2, depth - (depth // 2)] for depth in pad_depth]
 
     # now add the channel dimension according to the data format
-    #and then add the batch dimension
+    # and then add the batch dimension
     pad_values = _add_channel_values(pad_values, [0, 0])
     _ = pad_values.insert(0, [0, 0])
 
@@ -218,7 +218,7 @@ def _pad_tensor_same(tensor, padding_values: Tuple[Tuple[int]]):
         tensor padded as specified. The type of padding is constant and the constant values is the
         minimum value of the tensor.
 
-    TODO: add a way to chise the kind of padding.
+    TODO: add a way to choose the kind of padding.
     """
     # if the current framework is torch, convert the padding values to the correct format
     if _FRAMEWORK_NAME == 'torch':

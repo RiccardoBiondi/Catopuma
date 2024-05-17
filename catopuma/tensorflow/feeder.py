@@ -25,12 +25,11 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
     reading modalities.
     Parameters
     ----------
-    img_path: list[str]
-        list of paths to the input images.
-    tar_path: list[str]
-        list of paths to the target images. Must be of the same length of img_path.
-        Note that the order is important: the target_path at position idx must be the one corresponding 
-        to the img_path at position idx.
+    paths: List[str]
+        list of strings. Each list must contain the paths to the image to load.
+        At least two lists ,ust be provided, one for imagesand one for targets.
+        The last list provided will be considered as the taget paths list, all the 
+        others as the input image paths.
     batch_size: int (default 8)
         the size of each batch: must be lower or equal to the length of the image path.
     shuffle: bool (default True)
@@ -44,17 +43,22 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
     augmentation_strategy: DataAugmentationBase (default None)
         class implemeting the strategies to augment the data on the fly.
         Must return a pair X, y and inherit from DataAgumentationBase
+
+    Example
+    -------
+    >>>
+    >>>
     '''
 
-    def __init__(self, img_paths: List[str], target_paths: List[str],
-                 batch_size: int = 8, shuffle: bool = True,
-                 uploader: UploaderBase = SimpleITKUploader(), 
-                 preprocessing: Optional[PreProcessingBase] = None,
-                 augmentation_strategy: Optional[DataAgumentationBase] = None) -> None:
+    def __init__(self,
+                *paths,
+                batch_size: int = 8, shuffle: bool = True,
+                uploader: UploaderBase = SimpleITKUploader(), 
+                preprocessing: Optional[PreProcessingBase] = None,
+                augmentation_strategy: Optional[DataAgumentationBase] = None) -> None:
 
         # start the initialization of the feeder
-        self.img_paths = np.asarray(img_paths)
-        self.tar_paths = np.asarray(target_paths)
+        self.paths = paths
         self.batch_size = batch_size
 
         # check the input data consistency
@@ -67,7 +71,7 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
         self.augmentation_strategy = augmentation_strategy
 
         # define the indexes for the path access
-        self.indexes = np.arange(0, len(img_paths), 1)
+        self.indexes = np.arange(0, len(paths[0]), 1)
 
         # and thes shuffle if specified
         self.on_epoch_end()
@@ -75,16 +79,23 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
     def _checkConsistency(self) -> NoReturn:
         '''
         Check the consistency of the provided init arguments:
-            - len(img_paths) == len(tar_paths)
-            - len(img_paths) >= batch_size
+            - len paths >= 2 (at least a path to a single input image and to a target image
+            should be provided)
+            - all the paths lists must have the same lenght
+            - len(paths[0]) >= batch_size
 
         If one of those requirements is not met, it will raise a value error.
         '''
 
-        if len(self.img_paths) != len(self.tar_paths):
-            raise ValueError(f'len of image paths must be the same of the targets: {len(self.img_paths)} != {len(self.tar_paths)}')
-        if len(self.img_paths) < self.batch_size:
-            raise ValueError(f'len of imagese must be at least equal to the batch size: {len(self.img_paths)} < {self.batch_size}')
+        if len(self.paths) < 2:
+            raise ValueError(f'At least two list of paths must be provided. Provided {len(self.paths)}')
+        
+        for path in self.paths[1:]:
+            if len(self.paths[0]) != len(path):
+                raise ValueError(f'All the provided image paths must be the same: {len(self.paths[0])} != {len(path[0])}')
+
+        if len(self.paths[0]) < self.batch_size:
+            raise ValueError(f'len of imagese must be at least equal to the batch size: {len(self.paths[0])} < {self.batch_size}')
 
     def __len__(self) -> int:
         '''
@@ -118,9 +129,8 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
 
         # get the list of index for the batch
         idxs = self.indexes[self.batch_size * idx: self.batch_size * (idx + 1)]
-
         # load the image and the labels
-        X, y = list(zip(*[self.uploader(img, tar) for img, tar in zip(self.img_paths[idxs], self.tar_paths[idxs])]))
+        X, y = list(zip(*[self.uploader(*elem) for elem in zip(*[np.asarray(p)[idxs] for p in self.paths])]))
         X = np.asarray(X)
         y = np.asarray(y)
 
@@ -140,7 +150,7 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
         If self.shuffle is true, it will shuffle the images.
         '''
 
-        if self.shuffle is True:
+        if self.shuffle:
             np.random.shuffle(self.indexes)
 
 

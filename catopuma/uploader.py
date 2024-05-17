@@ -8,7 +8,7 @@ import numpy as np
 import SimpleITK as sitk
 
 from catopuma.core.base import UploaderBase
-
+from catopuma.core.__framework import _DATA_FORMAT
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
@@ -30,7 +30,7 @@ class SimpleITKUploader(UploaderBase):
         'channels_last': -1,
         'channels_first': 0}
 
-    def __init__(self, data_format: str = 'channels_last') -> None:
+    def __init__(self, data_format: str = _DATA_FORMAT) -> None:
 
         super().__init__()
         if data_format in self.EXPANSION_AXIS:
@@ -38,16 +38,11 @@ class SimpleITKUploader(UploaderBase):
         else:
             raise ValueError(f'{data_format} is not allowed. Allowed data formats:  {self.EXPANSION_AXIS.keys()}')
 
-    def __call__(self, *path: Tuple[str]) -> Tuple[np.ndarray]:
+    def __call__(self, *paths: str) -> Tuple[np.ndarray]:
         '''
         '''
-        img_path = path[0]
-        tar_path = path[1]
-
-        if isinstance(img_path, str):
-            # if I have ony a single image, convert the single path to a list with a single path,
-            # to handle with a single code both the single channel and the multichannel case
-            img_path = [img_path]
+        img_path = paths[:-1]
+        tar_path = paths[-1]
         
         imgs = []
         for i in img_path:
@@ -57,7 +52,7 @@ class SimpleITKUploader(UploaderBase):
             imgs.append(im)
 
         img = np.concatenate(imgs, axis=self.EXPANSION_AXIS[self.data_format])
-        tar = sitk.ReadImage(path[1]) # target path must be second
+        tar = sitk.ReadImage(tar_path)
         tar = sitk.GetArrayFromImage(tar)
         tar = np.expand_dims(tar, axis=self.EXPANSION_AXIS[self.data_format])
 
@@ -92,7 +87,7 @@ class LazyPatchBaseUploader(UploaderBase):
         'channels_last': -1,
         'channels_first': 0}
 
-    def __init__(self, patch_size: Tuple[int], threshold: float = -1., data_format: str = 'channels_last') -> None:
+    def __init__(self, patch_size: Tuple[int], threshold: float = -1., data_format: str = _DATA_FORMAT) -> None:
 
         super().__init__()
         if data_format in self.EXPANSION_AXIS.keys():
@@ -103,11 +98,13 @@ class LazyPatchBaseUploader(UploaderBase):
         self.patch_size = patch_size
         self.threshold = threshold
 
-    def __call__(self, *path: Tuple[str]) -> Tuple[np.array]:
+    def __call__(self, *paths: str) -> Tuple[np.array]:
         
- 
+        img_paths = paths[:-1]
+        tar_paths = paths[-1]
+
         reader = sitk.ImageFileReader()
-        _ = reader.SetFileName(path[-1])
+        _ = reader.SetFileName(tar_paths)
         _ = reader.ReadImageInformation()
         image_size = reader.GetSize()
         
@@ -120,22 +117,25 @@ class LazyPatchBaseUploader(UploaderBase):
         # complexity of the code 
         y = np.asarray([self.threshold * np.prod(np.asarray(self.patch_size)) - 1])
         
-        while np.sum(y) < self.threshold * np.prod(np.asarray(self.patch_size)):
+        while np.sum(y) <= self.threshold * np.prod(np.asarray(self.patch_size)):
             
             patch_origin = self._samplePatchOrigin(image_size)
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
-            # ensure that all the voxel hacve 0. o 1. values with 0. as background
+            # ensure that all the voxel have 0. o 1. values with 0. as background
             # and 1. as forground
             y = (y > 0.).astype(np.float32)
-                
-            
-        _ = reader.SetFileName(path[0])
-        X = sitk.GetArrayFromImage(reader.Execute())
 
-        X = np.expand_dims(X, axis=self.EXPANSION_AXIS[self.data_format])
         y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
+
+        X = []
+        for path in img_paths:
+            _ = reader.SetFileName(path)
+            Xt = sitk.GetArrayFromImage(reader.Execute())
+            Xt = np.expand_dims(Xt, axis=self.EXPANSION_AXIS[self.data_format])
+            X.append(Xt)
+        X = np.concatenate(X, axis=self.EXPANSION_AXIS[self.data_format])
 
         return X, y
 

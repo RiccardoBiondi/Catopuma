@@ -9,6 +9,8 @@ import pytest
 import hypothesis.strategies as st
 from hypothesis import given, settings
 
+import sklearn.metrics as ref_metrics
+
 
 
 import numpy as np
@@ -271,7 +273,6 @@ def test_tversky_score_is_f_score_alpha_beta_05(n_channels, smooth, data_format,
         - per_image modality
 
     Then:
-        - set the framework to the given one
         - generate random gt image batch
         - generate random pr image
         - compute the f1_score
@@ -295,3 +296,114 @@ def test_tversky_score_is_f_score_alpha_beta_05(n_channels, smooth, data_format,
     result = tversky_score(y_pred=y_pred, y_true=y_true, alpha=.5, beta=.5, smooth=smooth, data_format=data_format, per_image=per_image) 
 
     assert np.isclose(result, dice)
+
+
+@given(st.integers(3, 5), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans(),  st.floats(0.1, 0.9))
+@settings(max_examples=10, deadline=None)
+def test_f1_score_is_close_to_sklean_result(n_channels, smooth, data_format, per_channel, threshold):
+    '''
+    Test that the f_score is close to the f_score resulting from sklearn implementation (used as reference)
+    
+    Given
+        - number of image channels
+        - smoothing factor
+        - gating channel list
+        - valid data format (either channels first or channels last)
+        - per_channel modality
+        - binarization threshold
+    Then
+        - generate random gt image batch (binary)
+        - generate random pr image (binary)
+        - compute reference f_score with sklearn
+        - compute the f1_score
+    Assert
+        - reference f_score close to computed one
+    '''
+    y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
+    y_true = (y_true > threshold).astype(np.uint8)
+
+    y_pred = np.random.rand(8, 64, 64, n_channels)
+    y_pred = (y_pred > threshold).astype(np.uint8)
+
+    for i in range(n_channels):
+        y_pred[..., i] = (i + 1) * y_pred[..., i]
+        y_true[..., i] = (i + 1) * y_true[..., i] 
+
+    average = 'macro' if per_channel else 'micro'
+
+    f_score_ref = ref_metrics.f1_score(y_true.flatten(), y_pred.flatten(), average=average, labels=list(range(1, n_channels + 1)))
+
+    y_true = (y_true > 0).astype(np.uint8)
+    y_pred = (y_pred > 0).astype(np.uint8)
+
+    
+    y_true = _to_tensor(y_true)
+    y_true = _cast(y_true, 'float32')
+
+    y_pred = _to_tensor(y_pred)
+    y_pred = _cast(y_pred, 'float32')
+
+    if data_format == 'channels_first':
+        y_true = _permute_dimensions(y_true, (3, 0, 1, 2))
+        y_pred = _permute_dimensions(y_pred, (3, 0, 1, 2))
+    
+    dice = f_score(y_pred=y_pred, y_true=y_true, beta=1., smooth=smooth, data_format=data_format, per_channel=per_channel, per_image=False)
+    
+    assert np.isclose(dice, f_score_ref, atol=1e-4)
+
+
+
+@given(st.integers(3, 5), st.floats(0., 1e-3), st.sampled_from(ALLOWED_DATA_FORMATS), st.booleans(),  st.floats(0.1, 0.99), st.floats(0.1, 0.9))
+@settings(max_examples=10, deadline=None)
+def test_f_beta_score_is_close_to_sklean_result(n_channels, smooth, data_format, per_channel, beta, threshold):
+    '''
+    Test that the f_score is close to the f_score resulting from sklearn implementation (used as reference)
+    
+    Given
+        - number of image channels
+        - smoothing factor
+        - gating channel list
+        - valid data format (either channels first or channels last)
+        - per_channel flag
+        - binarization threshold
+    Then
+        - generate random gt image batch (binary)
+        - generate random pr image (binary)
+        - compute reference f_score with sklearn
+        - compute the f1_score
+    Assert
+        - reference f_score close to computed one
+    '''
+
+    # now assign a different lable to each channel (to test also the per_channel behaviour)
+    # the per_channel = True corresponds to the 'macro' sklearn average modality
+    y_true = np.random.randint(2, size=(8, 64, 64, n_channels), dtype=np.uint8)
+
+    y_pred = np.random.rand(8, 64, 64, n_channels)
+    y_pred = (y_pred > threshold).astype(np.uint8)
+
+    for i in range(n_channels):
+        y_pred[..., i] = (i + 1) * y_pred[..., i]
+        y_true[..., i] = (i + 1) * y_true[..., i] 
+
+    average = 'macro' if per_channel else 'micro'
+
+    f_score_ref = ref_metrics.fbeta_score(y_true.flatten(), y_pred.flatten(), beta=beta, average=average, labels=list(range(1, n_channels + 1)))
+
+    y_true = (y_true > 0).astype(np.uint8)
+    y_pred = (y_pred > 0).astype(np.uint8)
+
+    
+    y_true = _to_tensor(y_true)
+    y_true = _cast(y_true, 'float32')
+
+    y_pred = _to_tensor(y_pred)
+    y_pred = _cast(y_pred, 'float32')
+
+    if data_format == 'channels_first':
+        y_true = _permute_dimensions(y_true, (0, 3, 1, 2))
+        y_pred = _permute_dimensions(y_pred, (0, 3, 1, 2))
+    
+    dice = f_score(y_pred=y_pred, y_true=y_true, beta=beta, smooth=smooth, data_format=data_format, per_channel=per_channel, per_image=False)
+    
+    assert np.isclose(dice, f_score_ref, atol=1e-4)
