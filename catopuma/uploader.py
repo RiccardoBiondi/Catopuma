@@ -123,11 +123,11 @@ class LazyPatchBaseUploader(UploaderBase):
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
-            # ensure that all the voxel have 0. o 1. values with 0. as background
-            # and 1. as forground
-            y = (y > 0.).astype(np.float32)
+            
+            condition = np.sum(y > 0.0) < self.threshold * np.prod(np.asarray(self.patch_size))
+                
+        imgs = []
 
-        y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
 
         X = []
         for path in img_paths:
@@ -136,6 +136,7 @@ class LazyPatchBaseUploader(UploaderBase):
             Xt = np.expand_dims(Xt, axis=self.EXPANSION_AXIS[self.data_format])
             X.append(Xt)
         X = np.concatenate(X, axis=self.EXPANSION_AXIS[self.data_format])
+        y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
 
         return X, y
 
