@@ -37,15 +37,25 @@ BASE_DATA_FORMAT_GATHING_AXIS: Dict[str, List[int]] = {
                                                         'channels_last': -1
                                                         }
 
-def __gate_by_framework(x, indexes, axis):
-    '''
-    '''
+# now define a function that is specific for the framework.
+# that because the function to use for selectiong the index to gather has different 
+# name and arguments name and order between torch and tensorflow.
+# I have decided to proceed in this way to avoid uneccessary repeating of if statement.
+# In this way the if statement should be exeuted only once providing the function specific for the framework.
+# Notice that only one framework works at time
 
-    if _FRAMEWORK_NAME == 'torch':
+if _FRAMEWORK_NAME == 'torch':
+    
+    def __gate_by_framework(x, indexes, axis):
+        '''
+        '''
 
-        return F.index_select(x, axis, F.tensor(indexes))
-    else:
-        return F.gather(x, indexes, axis=axis)
+        return F.index_select(x, dim=axis, index=F.tensor(indexes))
+else:
+    def __gate_by_framework(x, indexes, axis):
+        '''
+        '''
+        return F.gather(x, indices =indexes, axis=axis)
 
 
 def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'channel_last'):
@@ -58,7 +68,7 @@ def _gather_channels(x: np.ndarray, indexes: Tuple[int], data_format: str = 'cha
     x: tensor
         tensor from gathe index with
     indexes: Tuple[int]
-        tuple specifying the index to gathe
+        tuple specifying the index to gather
     data_format: str
         either 'channel_last' or 'channel_first'.
         Specify the if the provided data in (batch_size, height, width, channel) or ( batch_size, channel, height, width) format 

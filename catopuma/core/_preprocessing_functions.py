@@ -2,7 +2,9 @@ import os
 import numpy as np
 
 from typing import Optional, List
+from typing import Union, Callable, Dict, Tuple, List, Optional
 
+from catopuma.core.__framework import _DATA_FORMAT
 
 def standard_scaler(image: np.ndarray, axis: Optional[List[int]] = None) -> np.ndarray:
 
@@ -105,3 +107,55 @@ def identity(image: np.ndarray, **kwargs) -> np.ndarray:
     '''
 
     return image
+
+
+def unpack_labels(image: np.ndarray, labels: Union[int, List[int]], data_format: str = _DATA_FORMAT, **kwargs) -> np.ndarray:
+    '''
+    Given a single channel labelmap image, unpacks labels associated with image data into separate channels.
+
+    Parameters
+    ----------
+        image: np.ndarray
+            The input labelmap image.
+        labels: int or List of integer
+            The label or list of labels to unpack.
+        data_format: str
+            The format of the image data. Default is the data format of the chosen frameworj
+    Returns
+    -------
+        image: np.ndarray:
+        An array with unpacked labels in separate channels.
+
+    Example:
+        >>> image = np.random.randint(0, 255, size=(10, 64, 64))  # Example image data
+        >>> labels = [1, 2, 3]  # Example labels
+        >>> unpacked = unpack_labels(image, labels)  # Unpack labels
+    '''
+
+    CHANNEL_AXIS: Dict[str, int] = {
+        'channels_last': -1,
+        'channels_first': 1}
+    TRANSPOSE_AXES: Dict[int, List[int]] = {
+        4 : [0, 3, 1, 2],
+        5: [0, 4, 1, 2, 3]}
+
+    t_labels = [labels] if isinstance(labels, int) else labels
+        
+    # get the shape by removing the channel dimension.
+    # the resulting shape will be (batch, h, w) or (batch, h, w, d)
+    # for 2D or 3D case respectively. 
+    shape = np.squeeze(image, axis=CHANNEL_AXIS[data_format]).shape
+    y = image.reshape(shape)
+    # now addthe channel at the end of the shape
+    # and create the zero image that will be filled with each different label
+    shape = (*shape, len(t_labels))
+    y_mc = np.zeros(shape)
+
+    # and finally fill each channel with the corresponding label    
+    for i, label in enumerate(t_labels):
+        y_mc[..., i] = (y == label).astype(np.uint8)
+
+    if data_format == 'channels_first':
+        y_mc = y_mc.transpose(TRANSPOSE_AXES[len(y_mc.shape)])
+
+    return y_mc        

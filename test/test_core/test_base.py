@@ -12,7 +12,7 @@ from catopuma.core.base_losses import BaseLoss
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
 
-
+#TODO test also the rsub, rtruedivide and rpow methods
 
 legitimate_chars = st.characters(whitelist_categories=('Lu', 'Ll'),
                                  min_codepoint=65, max_codepoint=90)
@@ -206,6 +206,7 @@ def test_loss_subtraction_name_and_result(loss1_value: float, loss2_value: float
     assert np.isclose(res_value, loss1_value - loss2_value)
 
 
+
 @given(st.floats(0, 100), st.floats(0, 100))
 def test_loss_constant_subtraction_name_and_result(loss1_value: float, const_value: float):
     '''
@@ -234,6 +235,32 @@ def test_loss_constant_subtraction_name_and_result(loss1_value: float, const_val
 
 
 @given(st.floats(0, 100), st.floats(0, 100))
+def test_loss_constant_rsubtraction_name_and_result(loss1_value: float, const_value: float):
+    '''
+    Check that the r subtraction of a loss and a constant return the correct value
+    Check also that te resulting loss name is valid.
+
+    Given:
+        - loss1 value
+        - constant value
+    Then:
+        - init first loss s.t. return loss1 value
+        - subtract loss and constant (constan - loss)
+        - call the resulting loss
+    Assert:
+        - resulting loss result is const_value - loss_value
+        - resulting loss name is const_value_minus_loss1
+    '''
+
+    loss1 = MockLoss(name='loss1', const=loss1_value)
+    
+    res = const_value - loss1 
+    res_value = res([], [])
+
+    assert res.name == f'{const_value}_minus_loss1'
+    assert np.isclose(res_value,  const_value - loss1_value)
+
+@given(st.floats(0, 100), st.floats(0, 100))
 def test_loss_multiplication_name_and_result(loss1_value: float, loss2_value: float):
     '''
     Check that the multiplication of two losses provides the correct result when called.
@@ -258,7 +285,7 @@ def test_loss_multiplication_name_and_result(loss1_value: float, loss2_value: fl
     res = loss1 * loss2
     res_value = res([], [])
 
-    assert res.name == '(loss1)_times_(loss2)'
+    assert res.name == 'loss1_times_loss2'
     assert np.isclose(res_value, loss1_value * loss2_value)
 
 
@@ -277,7 +304,7 @@ def test_loss_constant_multiplication_name_and_result(loss1_value: float, const_
         - call the resulting loss
     Assert:
         - resulting loss result is const_value * const_value
-        - resulting loss name is const_value_times_(loss1)
+        - resulting loss name is loss_1_times_const_value
     '''
 
     loss1 = MockLoss(name='loss1', const=loss1_value)
@@ -285,10 +312,35 @@ def test_loss_constant_multiplication_name_and_result(loss1_value: float, const_
     res = loss1 * const_value
     res_value = res([], [])
 
-    assert res.name == f'{const_value}_times_loss1'
+    assert res.name == f'loss1_times_{const_value}'
     assert np.isclose(res_value, loss1_value * const_value)
 
 
+@given(st.floats(0, 100), st.floats(0, 100))
+def test_loss_constant_rmultiplication_name_and_result(loss1_value: float, const_value: float):
+    '''
+    Check that the multiplication of a loss and a constant return the correct value
+    Check also that te resulting loss name is valid.
+
+    Given:
+        - loss1 value
+        - constant value
+    Then:
+        - init first loss s.t. return loss1 value
+        - multiply loss and constant
+        - call the resulting loss
+    Assert:
+        - resulting loss result is const_value * loss1_value 
+        - resulting loss name is const_value_times_loss1
+    '''
+
+    loss1 = MockLoss(name='loss1', const=loss1_value)
+    
+    res = const_value * loss1
+    res_value = res([], [])
+
+    assert res.name == f'{const_value}_times_loss1'
+    assert np.isclose(res_value,  loss1_value * const_value)
 
 @given(st.floats(0, 100), st.floats(0, 100))
 def test_loss_division_name_and_result(loss1_value: float, loss2_value: float):
@@ -315,7 +367,7 @@ def test_loss_division_name_and_result(loss1_value: float, loss2_value: float):
     res = loss1 / loss2
     res_value = res([], [])
 
-    assert res.name == '(loss1)_divided_by_(loss2)'
+    assert res.name == 'loss1_divided_by_loss2'
     assert np.isclose(res_value, loss1_value / loss2_value)
 
 
@@ -330,7 +382,7 @@ def test_loss_constant_division_name_and_result(loss1_value: float, const_value:
         - constant value (different from zero)
     Then:
         - init first loss s.t. return loss1 value
-        - multiply loss and constant
+        - divide loss and constant
         - call the resulting loss
     Assert:
         - resulting loss result is const_value / const_value
@@ -342,10 +394,35 @@ def test_loss_constant_division_name_and_result(loss1_value: float, const_value:
     res = loss1 / const_value
     res_value = res([], [])
 
-    assert res.name == f'(loss1)_divided_by_{const_value}'
+    assert res.name == f'loss1_divided_by_{const_value}'
     assert np.isclose(res_value, loss1_value / const_value)
 
 
+@given(st.floats(0, 100), st.floats(0, 100))
+def test_loss_constant_rdivision_name_and_result(loss1_value: float, const_value: float):
+    '''
+    Check that the right division of a constant and a loss returns the correct value
+    Check also that te resulting loss name is valid.
+
+    Given:
+        - loss1 value (different from zero)
+        - constant value 
+    Then:
+        - init first loss s.t. return loss1 value
+        - divide constant by loss
+        - call the resulting loss
+    Assert:
+        - resulting loss result is const_value / loss_value
+        - resulting loss name is const_value_divided_by_loss1
+    '''
+    assume(loss1_value != 0.)
+    loss1 = MockLoss(name='loss1', const=loss1_value)
+    
+    res = const_value / loss1
+    res_value = res([], [])
+
+    assert res.name == f'{const_value}_divided_by_loss1'
+    assert np.isclose(res_value, const_value / loss1_value)
 
 @given(st.floats(0, 100), st.floats(0, 100))
 def test_loss_power_name_and_result(loss1_value: float, loss2_value: float):
@@ -398,9 +475,34 @@ def test_loss_constant_pow_name_and_result(loss1_value: float, const_value: floa
     res = loss1**const_value
     res_value = res([], [])
 
-    assert res.name == f'(loss1)^{const_value}'
+    assert res.name == f'(loss1)^({const_value})'
     assert np.isclose(res_value, loss1_value**const_value)
 
+
+@given(st.floats(0, 100), st.floats(0, 100))
+def test_loss_constant_rpow_name_and_result(loss1_value: float, const_value: float):
+    '''
+    Check that the power of a constant  elevated by a loss return the correct value
+    Check also that te resulting loss name is valid.
+
+    Given:
+        - loss1 value
+        - constant value
+    Then:
+        - init first loss s.t. return loss1 value
+        - compute the power of constant elevated by loss
+        - call the resulting loss
+    Assert:
+        - resulting loss result is const_value**loss_value
+        - resulting loss name is (const_value)^(loss1)
+    '''
+    loss1 = MockLoss(name='loss1', const=loss1_value)
+    
+    res = const_value**loss1
+    res_value = res([], [])
+
+    assert res.name == f'({const_value})^(loss1)'
+    assert np.isclose(res_value, const_value**loss1_value)
 
 
 @given(st.floats(-50., 50),)

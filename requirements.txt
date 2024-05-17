@@ -3,3 +3,4 @@ SimpleITK
 
 pytest
 hypothesis
+scikit-learn

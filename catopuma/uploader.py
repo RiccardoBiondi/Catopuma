@@ -8,7 +8,7 @@ import numpy as np
 import SimpleITK as sitk
 
 from catopuma.core.base import UploaderBase
-
+from catopuma.core.__framework import _DATA_FORMAT
 
 __author__ = ['Riccardo Biondi']
 __email__ = ['riccardo.biondi7@unibo.it']
@@ -30,7 +30,7 @@ class SimpleITKUploader(UploaderBase):
         'channels_last': -1,
         'channels_first': 0}
 
-    def __init__(self, data_format: str = 'channels_last') -> None:
+    def __init__(self, data_format: str = _DATA_FORMAT) -> None:
 
         super().__init__()
         if data_format in self.EXPANSION_AXIS:
@@ -38,17 +38,22 @@ class SimpleITKUploader(UploaderBase):
         else:
             raise ValueError(f'{data_format} is not allowed. Allowed data formats:  {self.EXPANSION_AXIS.keys()}')
 
-    def __call__(self, *path: Tuple[str]) -> Tuple[np.ndarray]:
+    def __call__(self, *paths: str) -> Tuple[np.ndarray]:
         '''
         '''
-        img = sitk.ReadImage(path[0]) # input path must be first
-        tar = sitk.ReadImage(path[1]) # target path must be second
+        img_path = paths[:-1]
+        tar_path = paths[-1]
+        
+        imgs = []
+        for i in img_path:
+            im = sitk.ReadImage(i)
+            im = sitk.GetArrayFromImage(im)
+            im = np.expand_dims(im, axis=self.EXPANSION_AXIS[self.data_format])
+            imgs.append(im)
 
-        # convert the images to array
-        img = sitk.GetArrayFromImage(img)
+        img = np.concatenate(imgs, axis=self.EXPANSION_AXIS[self.data_format])
+        tar = sitk.ReadImage(tar_path)
         tar = sitk.GetArrayFromImage(tar)
-
-        img = np.expand_dims(img, axis=self.EXPANSION_AXIS[self.data_format])
         tar = np.expand_dims(tar, axis=self.EXPANSION_AXIS[self.data_format])
 
         return img, tar
@@ -82,7 +87,7 @@ class LazyPatchBaseUploader(UploaderBase):
         'channels_last': -1,
         'channels_first': 0}
 
-    def __init__(self, patch_size: Tuple[int], threshold: float = -1., data_format: str = 'channels_last') -> None:
+    def __init__(self, patch_size: Tuple[int], threshold: float = -1., data_format: str = _DATA_FORMAT) -> None:
 
         super().__init__()
         if data_format in self.EXPANSION_AXIS.keys():
@@ -93,24 +98,37 @@ class LazyPatchBaseUploader(UploaderBase):
         self.patch_size = patch_size
         self.threshold = threshold
 
+<<<<<<< HEAD
     def __call__(self, *path: Tuple[str]) -> Tuple[np.array]:
         print(path[-1])
+=======
+    def __call__(self, *paths: str) -> Tuple[np.array]:
+        
+        img_paths = paths[:-1]
+        tar_paths = paths[-1]
+
+>>>>>>> da6417c38ed98fd08a645fef4fc5b68ab4ea9d17
         reader = sitk.ImageFileReader()
-        _ = reader.SetFileName(path[-1])
+        _ = reader.SetFileName(tar_paths)
         _ = reader.ReadImageInformation()
         image_size = reader.GetSize()
         
         _ = self._checkConsistency(image_size)
+
+        # define a dummy patch image able to satisfy the 
+        # satisfy the while condtion so at least one run is 
+        # done and one patches is extracted.
+        # I have introduced this approach to reduce the cognitive 
+        # complexity of the code 
+        y = np.asarray([self.threshold * np.prod(np.asarray(self.patch_size)) - 1])
         
-        # insert the threshold case
-        condition = True
-        
-        while condition:
+        while np.sum(y) <= self.threshold * np.prod(np.asarray(self.patch_size)):
             
             patch_origin = self._samplePatchOrigin(image_size)
             _ = reader.SetExtractIndex(patch_origin)
             _ = reader.SetExtractSize(self.patch_size)
             y = sitk.GetArrayFromImage(reader.Execute())
+<<<<<<< HEAD
             
             condition = np.sum(y > 0.0) < self.threshold * np.prod(np.asarray(self.patch_size))
                 
@@ -121,7 +139,21 @@ class LazyPatchBaseUploader(UploaderBase):
             X = np.expand_dims(X, axis=self.EXPANSION_AXIS[self.data_format])
             imgs.append(X)
         X = np.concatenate(imgs, axis = self.EXPANSION_AXIS[self.data_format])
+=======
+            # ensure that all the voxel have 0. o 1. values with 0. as background
+            # and 1. as forground
+            y = (y > 0.).astype(np.float32)
+
+>>>>>>> da6417c38ed98fd08a645fef4fc5b68ab4ea9d17
         y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
+
+        X = []
+        for path in img_paths:
+            _ = reader.SetFileName(path)
+            Xt = sitk.GetArrayFromImage(reader.Execute())
+            Xt = np.expand_dims(Xt, axis=self.EXPANSION_AXIS[self.data_format])
+            X.append(Xt)
+        X = np.concatenate(X, axis=self.EXPANSION_AXIS[self.data_format])
 
         return X, y
 
@@ -167,3 +199,5 @@ class LazyPatchBaseUploader(UploaderBase):
             
         if np.any(np.asarray(image_size) < np.asarray(self.patch_size)):
             raise ValueError(f'Patch must be contained inside the image: {image_size} < {self.patch_size}')
+
+        

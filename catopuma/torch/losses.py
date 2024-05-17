@@ -34,7 +34,12 @@ class DiceLoss(BaseLoss, F.nn.Module):
 
 
     def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
-        pass
+        '''
+        Convinience method implemented to mantain the compatibility with the multiframework behaviour of
+        catopuma. It will call the forward method and return its result.
+        '''
+
+        return self.forward(y_true=y_true, y_pred=y_pred)
 
 
     def forward(self, y_true, y_pred):
@@ -114,6 +119,6 @@ class TverskyLoss(BaseLoss, F.nn.Module):
     def __call__(self, y_true, y_pred):
         '''
         Convinience method implemented to mantain the compatibility with the multiframework behaviour of
-        catopuma
+        catopuma. It will call the forward method and return its result.
         '''
-        pass
+        return self.forward(y_true=y_true, y_pred=y_pred)
