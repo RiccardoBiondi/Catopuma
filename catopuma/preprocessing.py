@@ -73,9 +73,6 @@ class PreProcessing(PreProcessingBase):
         parameters of the target_standardizer
     '''
 
-<<<<<<< HEAD
-    def __init__(self,  standardizer: Union[str, Callable] = 'identity', per_image: bool = False, per_channel: bool = False, data_format: str = 'channels_last', target_label: int = 1):
-=======
     def __init__(self,
                 standardizer: Union[str, Callable] = 'identity',
                 per_image: bool = False,
@@ -84,7 +81,6 @@ class PreProcessing(PreProcessingBase):
                 target_standardizer: Union[str, Callable] = 'identity',
                 standardizer_params: Dict = {},
                 target_standardizer_params: Dict = {}):
->>>>>>> da6417c38ed98fd08a645fef4fc5b68ab4ea9d17
         '''
         '''
         
@@ -113,13 +109,9 @@ class PreProcessing(PreProcessingBase):
         self.per_image = per_image
         self.per_channel = per_channel
         self.data_format = data_format
-<<<<<<< HEAD
-        self.target_label = target_label
-=======
 
         self.standardizer_params = standardizer_params
         self.target_standardizer_params = target_standardizer_params
->>>>>>> da6417c38ed98fd08a645fef4fc5b68ab4ea9d17
 
     def __call__(self, X: np.ndarray, y: np.ndarray) -> Tuple:
         '''
