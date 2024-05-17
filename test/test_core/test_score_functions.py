@@ -377,8 +377,7 @@ def test_f_beta_score_is_close_to_sklean_result(n_channels, smooth, data_format,
 
     # now assign a different lable to each channel (to test also the per_channel behaviour)
     # the per_channel = True corresponds to the 'macro' sklearn average modality
-    y_true = np.random.randint(2, size=(8, 64, 64, n_channels))
-    y_true = (y_true > threshold).astype(np.uint8)
+    y_true = np.random.randint(2, size=(8, 64, 64, n_channels), dtype=np.uint8)
 
     y_pred = np.random.rand(8, 64, 64, n_channels)
     y_pred = (y_pred > threshold).astype(np.uint8)
@@ -402,8 +401,8 @@ def test_f_beta_score_is_close_to_sklean_result(n_channels, smooth, data_format,
     y_pred = _cast(y_pred, 'float32')
 
     if data_format == 'channels_first':
-        y_true = _permute_dimensions(y_true, (3, 0, 1, 2))
-        y_pred = _permute_dimensions(y_pred, (3, 0, 1, 2))
+        y_true = _permute_dimensions(y_true, (0, 3, 1, 2))
+        y_pred = _permute_dimensions(y_pred, (0, 3, 1, 2))
     
     dice = f_score(y_pred=y_pred, y_true=y_true, beta=beta, smooth=smooth, data_format=data_format, per_channel=per_channel, per_image=False)
     

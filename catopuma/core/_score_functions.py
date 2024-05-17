@@ -19,7 +19,7 @@ __email__ = ['riccardo.biondi7@unibo.it']
 __all__ = ['f_score', 'tversky_score']
              
 
-def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
+def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-9,
             class_weights: Union[List[float], float] = 1.,  indexes: List[int] = None,
             per_image: bool = False, per_channel: bool = False, data_format: str = _DATA_FORMAT):
     '''
@@ -57,7 +57,7 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
         if provided, the list contaning the index of the channel to consider in the calculation of the loss.
         If a channel index is repeated more than once, the loss is calsulated on the index as many time as the index
         is repeated.
-        As default all the channels are considered in the order in which they are in y_true and y_pred.
+        As default all the channels are considered in the order they appear  in y_true and y_pred.
     
     per_image: bool (default false)
         If true, the score is calculated for each image and then averaged.
@@ -76,6 +76,7 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
     score: flaot
         f score resulting form the computation. It is in [0, 1]
     '''
+    beta_suqare = beta**2
     gt = gather_channels(y_true, indexes=indexes, data_format=data_format)
     pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
 
@@ -87,8 +88,7 @@ def f_score(y_true, y_pred, beta: float = 1., smooth: float = 1e-5,
     fp = K.sum(pr, axis=axes) - tp
     fn = K.sum(gt, axis=axes) - tp
 
-    score = ((1 + beta ** 2) * tp + smooth) \
-            / ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + smooth)
+    score = ((1 + beta_suqare) * tp + smooth) /  ((1 + beta_suqare) * tp + beta_suqare * fn + fp + smooth)
     score = average(score, per_image=per_image, per_channel=per_channel, class_weights=np.asarray(class_weights))
 
     return score
