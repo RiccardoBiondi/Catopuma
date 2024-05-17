@@ -30,12 +30,6 @@ class ImageFeederOnTheFly(tf.keras.utils.Sequence):
         At least two lists ,ust be provided, one for imagesand one for targets.
         The last list provided will be considered as the taget paths list, all the 
         others as the input image paths.
-    img_path: list[str]
-        list of paths to the input images.
-    tar_path: list[str]
-        list of paths to the target images. Must be of the same length of img_path.
-        Note that the order is important: the target_path at position idx must be the one corresponding 
-        to the img_path at position idx.
     batch_size: int (default 8)
         the size of each batch: must be lower or equal to the length of the image path.
     shuffle: bool (default True)
