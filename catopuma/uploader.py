@@ -127,13 +127,7 @@ class LazyPatchBaseUploader(UploaderBase):
             condition = np.sum(y > 0.0) < self.threshold * np.prod(np.asarray(self.patch_size))
                 
         imgs = []
-        for channel_path in path[0]:
-            _ = reader.SetFileName(channel_path)
-            X = sitk.GetArrayFromImage(reader.Execute())
-            X = np.expand_dims(X, axis=self.EXPANSION_AXIS[self.data_format])
-            imgs.append(X)
-        X = np.concatenate(imgs, axis = self.EXPANSION_AXIS[self.data_format])
-        y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
+
 
         X = []
         for path in img_paths:
@@ -142,6 +136,7 @@ class LazyPatchBaseUploader(UploaderBase):
             Xt = np.expand_dims(Xt, axis=self.EXPANSION_AXIS[self.data_format])
             X.append(Xt)
         X = np.concatenate(X, axis=self.EXPANSION_AXIS[self.data_format])
+        y = np.expand_dims(y, axis=self.EXPANSION_AXIS[self.data_format])
 
         return X, y
 
