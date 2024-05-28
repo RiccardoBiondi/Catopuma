@@ -4,3 +4,5 @@ SimpleITK
 pytest
 hypothesis
 scikit-learn
+albumentations
+volumentations-3D

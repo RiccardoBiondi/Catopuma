@@ -111,7 +111,7 @@ setup(
     packages=find_packages(include=['catopuma','catopuma'], exclude=('test', 'testing')),
     include_package_data=True, # no absolute paths are allowed
     platforms='any',
-    install_requires=get_requires(REQUIREMENTS_FILENAME),
+    install_requires=[],#get_requires(REQUIREMENTS_FILENAME),
 
     classifiers=[
         "Programming Language :: Python :: 3",

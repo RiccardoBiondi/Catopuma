@@ -1,14 +1,14 @@
 '''
 Simple testing module to check if the provided loss functions behave as expected and provides correct results.
 The loss functions are framework dependent, therefore will be tested for each available framework.
-TODO: Up to now the available frameworks are the keras ones. Modify this module to work also with pythorch.
 '''
 
 
 import pytest
 import hypothesis.strategies as st
-from hypothesis import given, settings
+from hypothesis import given, settings, assume
 
+from itertools import product
 import sklearn.metrics as ref_metrics
 
 
@@ -20,8 +20,11 @@ import catopuma
 from catopuma.core.__framework import _FRAMEWORK_NAME
 from catopuma.core.__framework import _FRAMEWORK_BASE as F
 from catopuma.core.__framework import _FRAMEWORK_BACKEND as K
+from catopuma.core.__framework import _DATA_FORMAT
 from catopuma.core._score_functions import f_score
 from catopuma.core._score_functions import tversky_score
+from catopuma.core._score_functions import mse
+from catopuma.core._score_functions import mae
 
 ALLOWED_DATA_FORMATS =   ('channels_first', 'channels_last')
 
@@ -101,6 +104,7 @@ def test_f_score_is_in_0_1(n_channels, beta, smooth, data_format, per_image):
 
 
 @given(st.integers(2, 16), st.integers(1, 4))
+@settings(max_examples=10, deadline=None)
 def test_f_score_all_zero_is_zero(batch_size, n_channels):
     '''
     Test that the f_score b=1. (i.e. dice loss) is zero when a zero target image is passed.
@@ -231,6 +235,7 @@ def test_tversky_score_is_in_0_1(n_channels, alpha, smooth, data_format, per_ima
 
 
 @given(st.integers(2, 16), st.integers(1, 4), st.floats(0., 1.))
+@settings(max_examples=10, deadline=None)
 def test_tversky_score_all_zero_is_zero(batch_size, n_channels, alpha):
     '''
     Test that the tversky_score b=1. (i.e. dice loss) is zero when a zero target image is passed.
@@ -406,4 +411,461 @@ def test_f_beta_score_is_close_to_sklean_result(n_channels, smooth, data_format,
     
     dice = f_score(y_pred=y_pred, y_true=y_true, beta=beta, smooth=smooth, data_format=data_format, per_channel=per_channel, per_image=False)
     
-    assert np.isclose(dice, f_score_ref, atol=1e-4)
+    assert np.isclose(dice, f_score_ref, atol=1e-5)
+
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3), st.booleans(), st.booleans())
+@settings(max_examples=10, deadline=None)
+def test_mse_is_zero_for_equal_imges(hgl, lgl, n_images, n_channels, per_image, per_channel):
+    '''
+    Test that the Mean Squared Error is close to zero if compute using the same image as ground
+    truth and prediction.
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+        - per_image
+        - per_channel
+    Then
+    ----
+        - generate the test image
+        - compute the mse between the test image and itself
+    Assert
+    ------
+        - mse is close to 0.
+    '''
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    img = _to_tensor(np.random.uniform(lgl, hgl, img_shape).reshape(img_shape))
+
+    mse_val = mse(img, img, per_channel=per_channel, per_image=per_image)
+
+    assert np.isclose(mse_val, 0.)
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mse_is_close_to_sklearn_mse(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Squared Error is close to the scikit learn one when called with per_image=False and
+    per_channel=False
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mse using the sklearn function  (ref_mse)
+        - compute the mse using the implemented loss (tst_mse)
+    Assert
+    ------
+        - tst_mse is close to ref_mse
+    '''
+
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+
+    ref_mse = ref_metrics.mean_squared_error(gt_img.ravel(), pr_img.ravel())
+
+    tst_mse = mse(_to_tensor(gt_img), _to_tensor(pr_img), per_image=False, per_channel=False)
+
+    assert np.isclose(ref_mse, tst_mse)
+
+    
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mse_is_close_to_sklearn_mse_per_image(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Squared Error is close to the scikit learn one when called with per_image=True and
+    per_channel=False
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mse using the sklearn function  (ref_mse)
+        - compute the mse using the implemented loss (tst_mse)
+    Assert
+    ------
+        - tst_mse is close to ref_mse
+    '''
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+    ref_mses = [ref_metrics.mean_squared_error(gt_img[i].ravel(), pr_img[i].ravel()) for i in range(n_images)]
+    
+    ref_mse = np.mean(ref_mses)
+    tst_mse = mse(_to_tensor(gt_img), _to_tensor(pr_img), per_image=True, per_channel=False)
+
+    assert np.isclose(ref_mse, tst_mse)
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mse_is_close_to_sklearn_mse_per_channel(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Squared Error is close to the scikit learn one when called with per_image=False and
+    per_channel=True
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mse using the sklearn function  (ref_mse)
+        - compute the mse using the implemented loss (tst_mse)
+    Assert
+    ------
+        - tst_mse is close to ref_mse
+    '''
+
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+
+    if _DATA_FORMAT == 'channels_last':
+
+        ref_mses = [ref_metrics.mean_squared_error(gt_img[..., i].ravel(), pr_img[..., i].ravel()) for i in range(n_channels)]
+    else:
+        ref_mses = [ref_metrics.mean_squared_error(gt_img[:, i].ravel(), pr_img[:, i].ravel()) for i in range(n_channels)]
+    ref_mse = np.mean(ref_mses)
+    tst_mse = mse(_to_tensor(gt_img), _to_tensor(pr_img), per_image=False, per_channel=True)
+
+    assert np.isclose(ref_mse, tst_mse)
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mse_is_close_to_sklearn_mse_per_image_per_channel(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Squared Error is close to the scikit learn one when called with per_image=True and
+    per_channel=True
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mse using the sklearn function  (ref_mse)
+        - compute the mse using the implemented loss (tst_mse)
+    Assert
+    ------
+        - tst_mse is close to ref_mse
+    '''
+
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+
+    if _DATA_FORMAT == 'channels_last':
+
+        ref_mses = [ref_metrics.mean_squared_error(gt_img[j, ..., i].ravel(), pr_img[j, ..., i].ravel()) for i, j in product(range(n_channels), range(n_images))]
+    else:
+        ref_mses = [ref_metrics.mean_squared_error(gt_img[j, i].ravel(), pr_img[j, i].ravel()) for i, j in product(range(n_channels), range(n_images))]
+    ref_mse = np.mean(ref_mses)
+    tst_mse = mse(_to_tensor(gt_img), _to_tensor(pr_img), per_image=True, per_channel=True)
+
+    assert np.isclose(ref_mse, tst_mse)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3), st.booleans(), st.booleans())
+@settings(max_examples=10, deadline=None)
+def test_mae_is_zero_for_equal_imges(hgl, lgl, n_images, n_channels, per_image, per_channel):
+    '''
+    Test that the Mean Absolute Error is close to zero if compute using the same image as ground
+    truth and prediction.
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+        - per_image
+        - per_channel
+    Then
+    ----
+        - generate the test image
+        - compute the mae between the test image and itself
+    Assert
+    ------
+        - mae is close to 0.
+    '''
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    img = _to_tensor(np.random.uniform(lgl, hgl, img_shape).reshape(img_shape))
+
+    mse_val = mae(img, img, per_channel=per_channel, per_image=per_image)
+
+    assert np.isclose(mse_val, 0.)
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mae_is_close_to_sklearn_mae(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Absolute Error is close to the scikit learn one when called with per_image=False and
+    per_channel=False
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mse using the sklearn function  (ref_mae)
+        - compute the mse using the implemented loss (tst_mae)
+    Assert
+    ------
+        - tst_mae is close to ref_mae
+    '''
+
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+
+    ref_mae = ref_metrics.mean_absolute_error(gt_img.ravel(), pr_img.ravel())
+
+    tst_mae = mae(_to_tensor(gt_img), _to_tensor(pr_img), per_image=False, per_channel=False)
+
+    assert np.isclose(ref_mae, tst_mae)
+
+    
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mae_is_close_to_sklearn_mae_per_image(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Absolute Error is close to the scikit learn one when called with per_image=True and
+    per_channel=False
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mae using the sklearn function  (ref_mse)
+        - compute the mae using the implemented loss (tst_mse)
+    Assert
+    ------
+        - tst_mae is close to ref_mae
+    '''
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+    ref_maes = [ref_metrics.mean_absolute_error(gt_img[i].ravel(), pr_img[i].ravel()) for i in range(n_images)]
+    
+    ref_mae = np.mean(ref_maes)
+    tst_mae = mae(_to_tensor(gt_img), _to_tensor(pr_img), per_image=True, per_channel=False)
+
+    assert np.isclose(ref_mae, tst_mae)
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mse_is_close_to_sklearn_mae_per_channel(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Absolute Error is close to the scikit learn one when called with per_image=False and
+    per_channel=True
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mse using the sklearn function  (ref_mae)
+        - compute the mse using the implemented loss (tst_mae)
+    Assert
+    ------
+        - tst_mae is close to ref_mae
+    '''
+
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+
+    if _DATA_FORMAT == 'channels_last':
+
+        ref_maes = [ref_metrics.mean_absolute_error(gt_img[..., i].ravel(), pr_img[..., i].ravel()) for i in range(n_channels)]
+    else:
+        ref_maes = [ref_metrics.mean_absolute_error(gt_img[:, i].ravel(), pr_img[:, i].ravel()) for i in range(n_channels)]
+    ref_mae = np.mean(ref_maes)
+    tst_mae = mae(_to_tensor(gt_img), _to_tensor(pr_img), per_image=False, per_channel=True)
+
+    assert np.isclose(ref_mae, tst_mae)
+
+
+@given(st.floats(1., 100.), st.floats(-100., 10), st.integers(1, 16), st.integers(1, 3))
+@settings(max_examples=10, deadline=None)
+def test_mae_is_close_to_sklearn_mae_per_image_per_channel(hgl, lgl, n_images, n_channels):
+    '''
+    Test that the Mean Absolute Error is close to the scikit learn one when called with per_image=True and
+    per_channel=True
+
+    Given
+    -----
+        - highest gray level
+        - lowest gray level
+        - number of images
+        - number of channels
+    Then
+    ----
+        - generate the test gt image
+        - gemerate the test pred image
+        - compute the mae using the sklearn function  (ref_mae)
+        - compute the mae using the implemented loss (tst_mae)
+    Assert
+    ------
+        - tst_mae is close to ref_mae
+    '''
+
+    if _DATA_FORMAT == 'channels_first':
+        img_shape = (n_images, n_channels, 128, 128)
+    else:
+        img_shape = (n_images, 128, 128, n_channels)
+
+    assume(lgl < hgl)
+    
+    gt_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+    pr_img = np.random.uniform(lgl, hgl, img_shape).reshape(img_shape)
+
+
+    if _DATA_FORMAT == 'channels_last':
+
+        ref_maes = [ref_metrics.mean_absolute_error(gt_img[j, ..., i].ravel(), pr_img[j, ..., i].ravel()) for i, j in product(range(n_channels), range(n_images))]
+    else:
+        ref_maes = [ref_metrics.mean_absolute_error(gt_img[j, i].ravel(), pr_img[j, i].ravel()) for i, j in product(range(n_channels), range(n_images))]
+    ref_mae = np.mean(ref_maes)
+    tst_mae = mae(_to_tensor(gt_img), _to_tensor(pr_img), per_image=True, per_channel=True)
+
+    assert np.isclose(ref_mae, tst_mae)

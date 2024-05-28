@@ -165,14 +165,114 @@ def tversky_score(y_true, y_pred, alpha: float = .5, beta: float = .5, smooth: f
 
 # future score to implement
 
-def mse():
+def mse(y_true, y_pred, alpha: float = .5, beta: float = .5,
+        class_weights: Union[List[float], float] = 1., indexes: List[int] = None,
+        per_channel: bool = False, per_image: bool = False, data_format: str = _DATA_FORMAT):
     '''
+    Function to compute the mean squared error between the prediction and the ground truth.
+
+    Parameters
+    ----------
+    y_true:
+        ground truth, used as reference to compute mse; must be floating point tensor. 
+        The shape is (batch, height, width, channels) if  data_format is 'channel_last' (default value) or
+        (batch, channels,  height, width) if data format is 'channel_first'.
+
+    y_pred: 
+        prediction sample used to compute the mse. Must be a floating point tensor.
+        The shape is (batch, height, width, channels) if  data_format is 'channel_last' (default value) or
+        (batch, channels,  height, width) if data format is 'channel_first'.
+
+    class_weights: float or List of float
+        Contribution of each channel to the final score. Can be a single float or a list of float with the same len of the 
+        number of considered channels.
+    
+    indexes: List[int] deafult None
+        if provided, the list contaning the index of the channel to consider in the calculation of the loss.
+        If a channel index is repeated more than once, the loss is calsulated on the index as many time as the index
+        is repeated.
+        As default all the channels are considered in the order in which they are in y_true and y_pred.
+    
+    per_image bool (default false)
+        If true, the loss is calculated for each image and then averaged.
+
+    data_format: str (default 'channels_last')
+        specitfy the data format of the input samples.
+        Can be either 'channels_last', implying a format of (batch, height, width, channels);
+        or 'channels_first', implying a format of (batch, channels, height, width)
+
+    Return
+    ------
+    score: flaot
+        resulting mean squared error.
+        
     '''
-    ...
+    gt = gather_channels(y_true, indexes=indexes, data_format=data_format)
+    pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
+
+    axes = get_reduce_axes(tensor_dims=len(y_true.shape), per_channel=per_channel, per_image=per_image, data_format=data_format)
+
+    # calculate score
+    score = K.mean((gt - pr)**2, axis=axes)
+
+    score = average(score, per_image=per_image, per_channel=per_channel, class_weights=np.asarray(class_weights))
+
+    return score
 
 
-def mae():
-    ...
+def mae(y_true, y_pred, alpha: float = .5, beta: float = .5,
+        class_weights: Union[List[float], float] = 1., indexes: List[int] = None,
+        per_channel: bool = False, per_image: bool = False, data_format: str = _DATA_FORMAT):
+    '''
+    Function to compute the mean absolute error between the prediction and the ground truth.
+
+    Parameters
+    ----------
+    y_true:
+        ground truth, used as reference to compute mse; must be floating point tensor. 
+        The shape is (batch, height, width, channels) if  data_format is 'channel_last' (default value) or
+        (batch, channels,  height, width) if data format is 'channel_first'.
+
+    y_pred: 
+        prediction sample used to compute the mse. Must be a floating point tensor.
+        The shape is (batch, height, width, channels) if  data_format is 'channel_last' (default value) or
+        (batch, channels,  height, width) if data format is 'channel_first'.
+
+    class_weights: float or List of float
+        Contribution of each channel to the final score. Can be a single float or a list of float with the same len of the 
+        number of considered channels.
+    
+    indexes: List[int] deafult None
+        if provided, the list contaning the index of the channel to consider in the calculation of the loss.
+        If a channel index is repeated more than once, the loss is calsulated on the index as many time as the index
+        is repeated.
+        As default all the channels are considered in the order in which they are in y_true and y_pred.
+    
+    per_image bool (default false)
+        If true, the loss is calculated for each image and then averaged.
+
+    data_format: str (default 'channels_last')
+        specitfy the data format of the input samples.
+        Can be either 'channels_last', implying a format of (batch, height, width, channels);
+        or 'channels_first', implying a format of (batch, channels, height, width)
+
+    Return
+    ------
+    score: float
+        resulting mean absolute error.
+        
+    '''
+    gt = gather_channels(y_true, indexes=indexes, data_format=data_format)
+    pr = gather_channels(y_pred, indexes=indexes, data_format=data_format)
+
+    axes = get_reduce_axes(tensor_dims=len(y_true.shape), per_channel=per_channel, per_image=per_image, data_format=data_format)
+
+    # calculate score
+    score = K.mean(K.abs(gt - pr), axis=axes)
+
+    score = average(score, per_image=per_image, per_channel=per_channel, class_weights=np.asarray(class_weights))
+
+    return score
 
 
 def binary_cross_entropy():

@@ -11,7 +11,12 @@ import numpy as np
 from typing import Union, Optional, List
 
 import catopuma
+
+from catopuma.core.__framework import _DATA_FORMAT
+
 from catopuma.core.base_losses import BaseLoss
+from catopuma.core._score_functions import mse
+from catopuma.core._score_functions import mae
 from catopuma.core._score_functions import f_score
 from catopuma.core._score_functions import tversky_score
 
@@ -46,7 +51,7 @@ class DiceLoss(BaseLoss):
     '''
 
     def __init__(self, smooth: float = 1e-5, per_image: bool = False, per_channel: bool = False, class_weights: Union[float, List[float]] = 1.,
-                class_indexes: Optional[List[int]] = None, data_format: str = 'channels_last', name: Optional[str] = None):
+                class_indexes: Optional[List[int]] = None, data_format: str =_DATA_FORMAT, name: Optional[str] = None):
         super().__init__(name=name)
 
         self.smooth = smooth
@@ -118,7 +123,7 @@ class TverskyLoss(BaseLoss):
     '''
 
     def __init__(self, smooth: float = 1e-5, alpha: float = .5, beta: float = .5, per_image: bool = False, per_channel: bool = False,
-                 class_weights: Union[float, List[float]] = 1., class_indexes: Optional[List[int]] = None, data_format: str = 'channels_last',
+                 class_weights: Union[float, List[float]] = 1., class_indexes: Optional[List[int]] = None, data_format: str = _DATA_FORMAT,
                  name: Optional[str] = None):
         super().__init__(name=name)
 
@@ -160,4 +165,63 @@ class TverskyLoss(BaseLoss):
         '''
         pass
 
-    
+
+
+class MeanSquaredError(BaseLoss):
+    """
+    """
+
+    def __init__(self, per_image: bool = False, per_channel: bool = False, class_weights: Union[float, List[float]] = 1.,
+                class_indexes: Optional[List[int]] = None, data_format: str = _DATA_FORMAT, name: Optional[str] = None) -> None:
+        
+        super().__init__(name=name)
+        
+        self.per_image = per_image
+        self.per_channel = per_channel
+        self.class_weights = class_weights
+        self.class_indexes = class_indexes
+        self.data_format = data_format
+
+
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        '''
+        Convinience method implemented to mantain the compatibility with the multiframework behaviour of
+        catopuma. It will call the forward method and return its result.
+        '''
+
+        return mse(y_true=y_true, y_pred=y_pred, indexes=self.class_indexes, class_weights=self.class_weights,
+                           data_format=self.data_format, per_image=self.per_image, per_channel=self.per_channel)
+
+
+    def forward(self, y_true, y_pred):
+        pass
+
+
+class MeanAbsoluteError(BaseLoss):
+    """
+    """
+
+    def __init__(self, per_image: bool = False, per_channel: bool = False, class_weights: Union[float, List[float]] = 1.,
+                class_indexes: Optional[List[int]] = None, data_format: str = _DATA_FORMAT, name: Optional[str] = None) -> None:
+        
+        super().__init__(name=name)
+        
+        self.per_image = per_image
+        self.per_channel = per_channel
+        self.class_weights = class_weights
+        self.class_indexes = class_indexes
+        self.data_format = data_format
+
+
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        '''
+        Convinience method implemented to mantain the compatibility with the multiframework behaviour of
+        catopuma. It will call the forward method and return its result.
+        '''
+
+        return mae(y_true=y_true, y_pred=y_pred, indexes=self.class_indexes, class_weights=self.class_weights,
+                           data_format=self.data_format, per_image=self.per_image, per_channel=self.per_channel)
+
+
+    def forward(self, y_true, y_pred):
+        pass
