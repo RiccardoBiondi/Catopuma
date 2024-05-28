@@ -1,5 +1,6 @@
 import os
 import catopuma
+import numpy as np
 import albumentations as A
 import volumentations as V
 from catopuma.core.base import DataAgumentationBase
