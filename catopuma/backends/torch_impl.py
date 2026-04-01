@@ -5,6 +5,16 @@ from typing import Any
 
 class TorchBackend(BackendBase):
 
+    _DTYPE_MAP = {
+        'float32': torch.float32,
+        'float64': torch.float64,
+        'int32': torch.int32,
+        'int64': torch.int64,
+        # Aggiungiamo il supporto diretto alle classi numpy se passate come tipo
+        float: torch.float32,
+        int: torch.int64,
+    }
+
     def name(self) -> str:
         return "torch"
 
@@ -16,12 +26,12 @@ class TorchBackend(BackendBase):
         return data.numpy(force=True)
 
     # math operations
-    def sum(self, x: torch.Tensor, axis: int = None, keeepdims: bool = False) -> torch.Tensor:
-        return torch.sum(x, dim=axis, keeepdims=keeepdims)        
+    def sum(self, x: torch.Tensor, axis: int = None, keepdims: bool = False) -> torch.Tensor:
+        return torch.sum(x, dim=axis, keepdims=keepdims)        
         
-    def mean(self, x: torch.Tensor, axis: int = None, keeepdims: bool = False) -> torch.Tensor:
+    def mean(self, x: torch.Tensor, axis: int = None, keepdims: bool = False) -> torch.Tensor:
         """Compute the arithmetic mean across specified axes."""
-        return torch.mean(x, dim=axis, keeepdims=keeepdims)
+        return torch.mean(x, dim=axis, keepdims=keepdims)
 
     def abs(self, x: torch.Tensor) -> torch.Tensor:
         """Compute the element-wise absolute value."""
@@ -72,4 +82,4 @@ class TorchBackend(BackendBase):
         Create a tensor of zeros with the given shape.
         Used to initialize accumulators for patch-based reconstruction.
         """
-        return torch.zeros(*shape, dtype=dtype)
+        return torch.zeros(shape, dtype=self._DTYPE_MAP[dtype])

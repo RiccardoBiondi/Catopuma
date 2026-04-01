@@ -47,12 +47,12 @@ class BackendBase(ABC):
     # math operations
 
     @abstractmethod
-    def sum(self, x: Tensor, axis: int = None, keeepdims: bool = False) -> Tensor:
+    def sum(self, x: Tensor, axis: int = None, keepdims: bool = False) -> Tensor:
         """Compute the sum of elements across specified axes."""
         pass
 
     @abstractmethod
-    def mean(self, x: Tensor, axis: int = None, keeepdims: bool = False) -> Tensor:
+    def mean(self, x: Tensor, axis: int = None, keepdims: bool = False) -> Tensor:
         """Compute the arithmetic mean across specified axes."""
         pass
 
