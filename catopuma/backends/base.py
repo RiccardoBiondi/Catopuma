@@ -12,6 +12,21 @@ class BackendBase(ABC):
     (Losses, Patch Engines, Preprocessing) and specific deep learning frameworks 
     like PyTorch, TensorFlow, or JAX.
     """
+
+    def __init__(self, channel_format: str = "channels_first"):
+        self.channel_format = channel_format
+
+    def spatial_axes(self, ndim: int) -> tuple:
+        """Restituisce gli assi spaziali in base al formato."""
+        if self.channel_format == "channels_first":
+            # (Batch, Channel, D, H, W) -> spaziali sono dal 2 in poi
+            return tuple(range(2, ndim))
+        elif self.channel_format == "channels_last":
+            # (Batch, D, H, W, Channel) -> spaziali sono tra 1 e ndim-1
+            return tuple(range(1, ndim - 1))
+        else:
+            raise ValueError(f"channel format: {self.channel_format} is not a valid format. please chose one of [channels_first, channels_last]")
+
     # name of the backend
     @property
     @abstractmethod

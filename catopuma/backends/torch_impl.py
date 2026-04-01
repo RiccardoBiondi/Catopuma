@@ -15,6 +15,10 @@ class TorchBackend(BackendBase):
         int: torch.int64,
     }
 
+    def __init__(self):
+        super().__init__(channel_format="channels_first")
+
+
     def name(self) -> str:
         return "torch"
 

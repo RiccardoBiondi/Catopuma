@@ -56,8 +56,6 @@ class TestTorchBackend(BaseBackendTest):
         expected_grad = torch.tensor([4.0, 8.0])
         assert torch.allclose(data.grad, expected_grad)
 
-
-
     def test_torch_gpu_tensor_to_numpy(self, backend):
 
         data = torch.tensor([2.0, 4.0], requires_grad=True)
@@ -67,3 +65,14 @@ class TestTorchBackend(BaseBackendTest):
 
         manual_np = data.detach().cpu().numpy()
         assert all(np.isclose(manual_np, np_version))
+
+    
+    def test_correct_channel_first_axis_4d_tensor(self, backend):
+
+        assert backend.spatial_axes(ndim=4) == (2, 3)
+
+    def test_correct_channel_first_axis_5d_tensor(self, backend):
+
+        assert backend.spatial_axes(ndim=5) == (2, 3, 4)
+
+            
